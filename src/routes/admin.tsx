@@ -22,7 +22,7 @@ interface ValidationErrors {
 
 function isValidUrlOrPath(val: string): boolean {
   if (!val.trim()) return true;
-  if (val.startsWith("/") || val.startsWith("#")) return true;
+  if (val.startsWith("/") || val.startsWith("#") || val.startsWith("data:image/")) return true;
   try {
     const url = new URL(val.startsWith("wa.me") ? `https://${val}` : val);
     return url.protocol === "http:" || url.protocol === "https:";
@@ -95,6 +95,95 @@ function SectionToggle({
       >
         {hidden ? "Show Section" : "Hide Section"}
       </button>
+    </div>
+  );
+}
+
+function ImageUploader({
+  label,
+  value,
+  onChange,
+  error,
+  placeholder = "https://... or upload a photo file",
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  error?: string;
+  placeholder?: string;
+}) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image file size should be under 5MB for fast loading.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        onChange(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+        {label}
+      </label>
+
+      {/* Image Preview Thumbnail */}
+      {value && (
+        <div className="flex items-center gap-4 p-3.5 rounded-2xl border border-gold/40 bg-gold/5 shadow-sm">
+          <img
+            src={value}
+            alt="Preview"
+            className="h-16 w-16 object-cover rounded-xl border border-gold/40 shadow-sm bg-background"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-bold text-primary truncate">
+              {value.startsWith("data:") ? "✓ Custom Uploaded Photo File" : "✓ Web Image Link"}
+            </div>
+            <div className="text-[11px] text-muted-foreground truncate">
+              {value.startsWith("data:") ? "Saved as Base64 Data URL" : value}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="text-xs text-destructive hover:underline font-semibold px-2 py-1"
+          >
+            Clear Photo
+          </button>
+        </div>
+      )}
+
+      {/* Upload File & Link Input Controls */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <label className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gold/70 bg-gold/10 px-4 py-3 text-xs font-bold text-primary cursor-pointer hover:bg-gold/20 transition shadow-sm">
+          <span>📁 Choose Photo File to Upload</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-xs focus:border-gold"
+        />
+      </div>
+
+      {error && <p className="text-[11px] text-destructive mt-1 font-medium">{error}</p>}
     </div>
   );
 }
@@ -1277,38 +1366,26 @@ function AdminPage() {
             {activeTab === "seo" && (
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-6">
                 <div>
-                  <h2 className="font-display text-2xl text-primary font-semibold">Brand Assets & Meta Tags</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Configure site icons, search engine indexing headers, and social media thumbnails.</p>
+                  <h2 className="font-display text-2xl text-primary font-semibold">Brand Assets & SEO Photo Uploads</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Upload brand photos (Favicon icon, Social Thumbnail card) directly from your device or enter web image links.</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                      Favicon Image URL
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.seo.faviconUrl}
-                      onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, faviconUrl: e.target.value } })}
-                      placeholder="https://example.com/favicon.ico"
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                    {errors["seo.faviconUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["seo.faviconUrl"]}</p>}
-                  </div>
+                  <ImageUploader
+                    label="Favicon Image Photo / Icon"
+                    value={formData.seo.faviconUrl}
+                    onChange={(val) => setFormData({ ...formData, seo: { ...formData.seo, faviconUrl: val } })}
+                    error={errors["seo.faviconUrl"]}
+                    placeholder="Upload favicon file or enter https://..."
+                  />
 
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                      Social Media Thumbnail (OG Image URL)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.seo.ogImageUrl}
-                      onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, ogImageUrl: e.target.value } })}
-                      placeholder="https://example.com/og-image.jpg"
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                    {errors["seo.ogImageUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["seo.ogImageUrl"]}</p>}
-                  </div>
+                  <ImageUploader
+                    label="Social Media Sharing Thumbnail (OG Image Photo)"
+                    value={formData.seo.ogImageUrl}
+                    onChange={(val) => setFormData({ ...formData, seo: { ...formData.seo, ogImageUrl: val } })}
+                    error={errors["seo.ogImageUrl"]}
+                    placeholder="Upload thumbnail photo or enter https://..."
+                  />
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-border">
@@ -1451,7 +1528,7 @@ function AdminPage() {
               </div>
               <h3 className="font-display text-2xl font-bold text-primary mb-2">Updates Validated & Saved!</h3>
               <p className="text-sm text-muted-foreground mb-6">
-                All site modifications, section visibility settings, SEO meta tags, and tracking scripts have been validated and saved successfully. The live website is updated.
+                All site modifications, section visibility settings, SEO meta tags, brand photo uploads, and tracking scripts have been validated and saved successfully. The live website is updated.
               </p>
               <div className="text-xs text-emerald-600 font-medium mb-6 bg-emerald-500/10 py-2 rounded-xl border border-emerald-500/20">
                 Validated at {lastSavedTimestamp}
