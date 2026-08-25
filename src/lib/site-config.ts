@@ -42,7 +42,23 @@ export interface FeaturePair {
   description: string;
 }
 
+export interface HiddenSections {
+  topBar?: boolean;
+  hero?: boolean;
+  painPoints?: boolean;
+  mounjaroTreatment?: boolean;
+  compoundedTreatment?: boolean;
+  gallery?: boolean;
+  results?: boolean;
+  whatsappReviews?: boolean;
+  whyUs?: boolean;
+  bmiSection?: boolean;
+  faqSection?: boolean;
+  consultSection?: boolean;
+}
+
 export interface SiteConfig {
+  hiddenSections: HiddenSections;
   seo: {
     title: string;
     description: string;
@@ -167,6 +183,20 @@ export interface SiteConfig {
 }
 
 export const defaultConfig: SiteConfig = {
+  hiddenSections: {
+    topBar: false,
+    hero: false,
+    painPoints: false,
+    mounjaroTreatment: false,
+    compoundedTreatment: false,
+    gallery: false,
+    results: false,
+    whatsappReviews: false,
+    whyUs: false,
+    bmiSection: false,
+    faqSection: false,
+    consultSection: false,
+  },
   seo: {
     title: "Wellness Journey — Nigeria's Trusted Weight Loss Partner",
     description:
@@ -459,6 +489,7 @@ export function getSiteConfig(): SiteConfig {
     return {
       ...defaultConfig,
       ...parsed,
+      hiddenSections: { ...defaultConfig.hiddenSections, ...parsed.hiddenSections },
       seo: { ...defaultConfig.seo, ...parsed.seo },
       tracking: { ...defaultConfig.tracking, ...parsed.tracking },
       contact: { ...defaultConfig.contact, ...parsed.contact },

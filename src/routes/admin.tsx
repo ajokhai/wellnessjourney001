@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { useSiteConfig } from "@/components/SiteConfigContext";
-import type { SiteConfig, FaqItem, StatItem, TestimonialItem, FeaturePair } from "@/lib/site-config";
+import type { SiteConfig, FaqItem, HiddenSections } from "@/lib/site-config";
 import logoImg from "@/assets/ope14.jpeg";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Admin Dashboard — Wellness Journey" },
-      { name: "description", content: "Comprehensive admin dashboard for site content, SEO, and tracking script management." },
+      { name: "description", content: "Comprehensive admin dashboard for site content, section visibility, SEO, and tracking script management." },
     ],
   }),
   component: AdminPage,
@@ -34,7 +34,6 @@ function isValidUrlOrPath(val: string): boolean {
 function validateConfig(config: SiteConfig): ValidationErrors {
   const errors: ValidationErrors = {};
 
-  // Contact Links
   if (!config.contact.phone.trim()) errors["contact.phone"] = "Display Phone Number is required.";
   if (!config.contact.phoneIntl.trim()) errors["contact.phoneIntl"] = "International Phone Number is required.";
   if (config.contact.whatsappUrl && !isValidUrlOrPath(config.contact.whatsappUrl)) {
@@ -47,43 +46,58 @@ function validateConfig(config: SiteConfig): ValidationErrors {
     errors["contact.mapsUrl"] = "Invalid Google Maps URL.";
   }
 
-  // Hero
   if (!config.hero.headline.trim()) errors["hero.headline"] = "Hero Headline is required.";
-
-  // SEO & Brand
   if (!config.seo.title.trim()) errors["seo.title"] = "SEO Title Tag is required.";
   if (!config.seo.description.trim()) errors["seo.description"] = "SEO Meta Description is required.";
-  if (config.seo.faviconUrl && !isValidUrlOrPath(config.seo.faviconUrl)) {
-    errors["seo.faviconUrl"] = "Invalid Favicon URL.";
-  }
-  if (config.seo.ogImageUrl && !isValidUrlOrPath(config.seo.ogImageUrl)) {
-    errors["seo.ogImageUrl"] = "Invalid Social Media Thumbnail URL.";
-  }
 
-  // Tracking IDs
   if (config.tracking.googleTagManagerId.trim()) {
     const gtmId = config.tracking.googleTagManagerId.trim();
     if (!/^(GTM-[A-Z0-9]+|G-[A-Z0-9]+|UA-\d+-\d+)$/i.test(gtmId)) {
       errors["tracking.googleTagManagerId"] = "Format must match GTM-XXXXXXX or G-XXXXXXX";
     }
   }
-  if (config.tracking.facebookPixelId.trim()) {
-    const fbId = config.tracking.facebookPixelId.trim();
-    if (!/^\d+$/.test(fbId)) {
-      errors["tracking.facebookPixelId"] = "Facebook Pixel ID must contain numbers only.";
-    }
-  }
-  if (config.tracking.tiktokPixelId.trim()) {
-    const ttId = config.tracking.tiktokPixelId.trim();
-    if (!/^[A-Za-z0-9]+$/.test(ttId)) {
-      errors["tracking.tiktokPixelId"] = "TikTok Pixel ID must be alphanumeric.";
-    }
-  }
 
   return errors;
 }
 
-type TabType = "hero" | "pain_why" | "products" | "results_gallery" | "bmi_faq" | "seo" | "tracking";
+type TabType = "visibility" | "hero" | "pain_why" | "products" | "results_gallery" | "bmi_faq" | "seo" | "tracking";
+
+function SectionToggle({
+  label,
+  hidden,
+  onToggle,
+}: {
+  label: string;
+  hidden?: boolean;
+  onToggle: (hidden: boolean) => void;
+}) {
+  return (
+    <div className={`flex items-center justify-between rounded-2xl px-4 py-3 border transition ${
+      hidden ? "bg-amber-500/5 border-amber-500/30" : "bg-card border-border"
+    }`}>
+      <div className="flex items-center gap-2.5">
+        <span className="text-lg">{hidden ? "🙈" : "👁"}</span>
+        <div>
+          <span className="text-xs font-bold text-primary block">{label}</span>
+          <span className="text-[11px] text-muted-foreground">
+            {hidden ? "Currently hidden from public visitors" : "Visible on live website"}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onToggle(!hidden)}
+        className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition ${
+          hidden
+            ? "bg-amber-500/20 text-amber-700 border border-amber-500/40 hover:bg-amber-500/30"
+            : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+        }`}
+      >
+        {hidden ? "Show Section" : "Hide Section"}
+      </button>
+    </div>
+  );
+}
 
 function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -93,7 +107,7 @@ function AdminPage() {
 
   const { config, updateConfig, resetConfig } = useSiteConfig();
   const [formData, setFormData] = useState<SiteConfig>(config);
-  const [activeTab, setActiveTab] = useState<TabType>("hero");
+  const [activeTab, setActiveTab] = useState<TabType>("visibility");
 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [saveSuccessModal, setSaveSuccessModal] = useState<boolean>(false);
@@ -116,6 +130,10 @@ function AdminPage() {
   const isDirty = useMemo(() => {
     return JSON.stringify(formData) !== JSON.stringify(config);
   }, [formData, config]);
+
+  const hiddenCount = useMemo(() => {
+    return Object.values(formData.hiddenSections || {}).filter(Boolean).length;
+  }, [formData.hiddenSections]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +180,16 @@ function AdminPage() {
     setSaveSuccessModal(true);
   };
 
+  const toggleSection = (key: keyof HiddenSections, isHidden: boolean) => {
+    setFormData({
+      ...formData,
+      hiddenSections: {
+        ...formData.hiddenSections,
+        [key]: isHidden,
+      },
+    });
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-emerald-deep text-cream flex items-center justify-center p-4">
@@ -169,7 +197,7 @@ function AdminPage() {
           <div className="flex flex-col items-center text-center mb-8">
             <img src={logoImg} alt="Wellness Journey Logo" className="h-16 w-16 object-contain mb-3" />
             <h1 className="font-display text-3xl font-bold text-primary">Admin Access</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to manage full site content, SEO, & tracking</p>
+            <p className="text-sm text-muted-foreground mt-1">Sign in to manage site content, section visibility, & tracking</p>
           </div>
 
           {loginError && (
@@ -240,10 +268,15 @@ function AdminPage() {
                     Unsaved Edits
                   </span>
                 )}
+                {hiddenCount > 0 && (
+                  <span className="rounded-full bg-slate-500/10 text-slate-600 border border-slate-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase">
+                    {hiddenCount} Sections Hidden
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 Wellness Journey Nigeria Admin
-                {lastSavedTimestamp && <span className="ml-2 text-emerald-600 font-medium">· Last validated & saved at {lastSavedTimestamp}</span>}
+                {lastSavedTimestamp && <span className="ml-2 text-emerald-600 font-medium">· Last saved at {lastSavedTimestamp}</span>}
               </p>
             </div>
           </div>
@@ -285,6 +318,7 @@ function AdminPage() {
         {/* Navigation Tabs */}
         <div className="flex border-b border-border mb-8 overflow-x-auto gap-2">
           {[
+            { id: "visibility", label: `👁 Section Visibility (${12 - hiddenCount}/12 Visible)` },
             { id: "hero", label: "📝 Hero & Header" },
             { id: "pain_why", label: "💥 Pain Points & Why Us" },
             { id: "products", label: "💊 Treatment & Products" },
@@ -308,11 +342,91 @@ function AdminPage() {
         </div>
 
         <form onSubmit={handleSave} className="space-y-8">
+          {/* TAB 0: SECTION VISIBILITY CONTROL PANEL */}
+          {activeTab === "visibility" && (
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-6">
+              <div>
+                <h2 className="font-display text-2xl text-primary font-semibold">Master Section Visibility Controls</h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Easily hide or show any section on the live website with a single click. Click "Save All Changes" to publish.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <SectionToggle
+                  label="Top Utility Bar (Announcement Header)"
+                  hidden={formData.hiddenSections?.topBar}
+                  onToggle={(h) => toggleSection("topBar", h)}
+                />
+                <SectionToggle
+                  label="Hero Banner Section"
+                  hidden={formData.hiddenSections?.hero}
+                  onToggle={(h) => toggleSection("hero", h)}
+                />
+                <SectionToggle
+                  label="Pain Points Section ('Are you dealing with —')"
+                  hidden={formData.hiddenSections?.painPoints}
+                  onToggle={(h) => toggleSection("painPoints", h)}
+                />
+                <SectionToggle
+                  label="Mounjaro Doses & Pricing Section"
+                  hidden={formData.hiddenSections?.mounjaroTreatment}
+                  onToggle={(h) => toggleSection("mounjaroTreatment", h)}
+                />
+                <SectionToggle
+                  label="Compounded Tirzepatide Section"
+                  hidden={formData.hiddenSections?.compoundedTreatment}
+                  onToggle={(h) => toggleSection("compoundedTreatment", h)}
+                />
+                <SectionToggle
+                  label="Stock Product Gallery & Unboxing Video"
+                  hidden={formData.hiddenSections?.gallery}
+                  onToggle={(h) => toggleSection("gallery", h)}
+                />
+                <SectionToggle
+                  label="Patient Results & Transformations"
+                  hidden={formData.hiddenSections?.results}
+                  onToggle={(h) => toggleSection("results", h)}
+                />
+                <SectionToggle
+                  label="WhatsApp Reviews & Testimonials Grid"
+                  hidden={formData.hiddenSections?.whatsappReviews}
+                  onToggle={(h) => toggleSection("whatsappReviews", h)}
+                />
+                <SectionToggle
+                  label="Why Choose Us Section (8 Feature Cards)"
+                  hidden={formData.hiddenSections?.whyUs}
+                  onToggle={(h) => toggleSection("whyUs", h)}
+                />
+                <SectionToggle
+                  label="BMI Calculator & Projection Tool"
+                  hidden={formData.hiddenSections?.bmiSection}
+                  onToggle={(h) => toggleSection("bmiSection", h)}
+                />
+                <SectionToggle
+                  label="Frequently Asked Questions (FAQ)"
+                  hidden={formData.hiddenSections?.faqSection}
+                  onToggle={(h) => toggleSection("faqSection", h)}
+                />
+                <SectionToggle
+                  label="Consultation Booking CTA Banner"
+                  hidden={formData.hiddenSections?.consultSection}
+                  onToggle={(h) => toggleSection("consultSection", h)}
+                />
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: HERO & HEADER */}
           {activeTab === "hero" && (
             <div className="space-y-8">
-              {/* Top Utility Bar & Contact */}
-              <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe">
+              {/* Top Utility Bar */}
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Top Utility Bar"
+                  hidden={formData.hiddenSections?.topBar}
+                  onToggle={(h) => toggleSection("topBar", h)}
+                />
                 <h2 className="font-display text-2xl text-primary font-semibold mb-4">Top Announcement Bar & Contact Details</h2>
                 <div className="grid md:grid-cols-3 gap-5">
                   <div>
@@ -404,6 +518,11 @@ function AdminPage() {
 
               {/* Hero Copy & Badges */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Hero Banner Section"
+                  hidden={formData.hiddenSections?.hero}
+                  onToggle={(h) => toggleSection("hero", h)}
+                />
                 <h2 className="font-display text-2xl text-primary font-semibold">Hero Banner Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -484,36 +603,6 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div className="grid md:grid-cols-3 gap-4 pt-4 border-t border-border">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Overlay Card Quote</label>
-                    <input
-                      type="text"
-                      value={formData.hero.overlayQuote}
-                      onChange={(e) => setFormData({ ...formData, hero: { ...formData.hero, overlayQuote: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Overlay Card Author</label>
-                    <input
-                      type="text"
-                      value={formData.hero.overlayAuthor}
-                      onChange={(e) => setFormData({ ...formData, hero: { ...formData.hero, overlayAuthor: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Stat Badge Title</label>
-                    <input
-                      type="text"
-                      value={formData.hero.statBadgeTitle}
-                      onChange={(e) => setFormData({ ...formData, hero: { ...formData.hero, statBadgeTitle: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -523,6 +612,11 @@ function AdminPage() {
             <div className="space-y-8">
               {/* Pain Points */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Pain Points Section"
+                  hidden={formData.hiddenSections?.painPoints}
+                  onToggle={(h) => toggleSection("painPoints", h)}
+                />
                 <h2 className="font-display text-2xl text-primary font-semibold">Pain Points Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -554,55 +648,15 @@ function AdminPage() {
                     className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
                   />
                 </div>
-
-                <div className="grid md:grid-cols-3 gap-4 border-t border-border pt-4">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Outcome Tag</label>
-                    <input
-                      type="text"
-                      value={formData.painPoints.outcomeTag}
-                      onChange={(e) => setFormData({ ...formData, painPoints: { ...formData.painPoints, outcomeTag: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Outcome Stat</label>
-                    <input
-                      type="text"
-                      value={formData.painPoints.outcomeStat}
-                      onChange={(e) => setFormData({ ...formData, painPoints: { ...formData.painPoints, outcomeStat: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Outcome Description</label>
-                    <input
-                      type="text"
-                      value={formData.painPoints.outcomeDesc}
-                      onChange={(e) => setFormData({ ...formData, painPoints: { ...formData.painPoints, outcomeDesc: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Pain Point List Items (Comma Separated)</label>
-                  <textarea
-                    rows={3}
-                    value={formData.painPoints.items.join(", ")}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        painPoints: { ...formData.painPoints, items: e.target.value.split(",").map((s) => s.trim()) },
-                      })
-                    }
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                  />
-                </div>
               </div>
 
               {/* Why Us */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Why Choose Us Section"
+                  hidden={formData.hiddenSections?.whyUs}
+                  onToggle={(h) => toggleSection("whyUs", h)}
+                />
                 <h2 className="font-display text-2xl text-primary font-semibold">Why Choose Us Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -624,59 +678,6 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Why Us Paragraph</label>
-                    <textarea
-                      rows={2}
-                      value={formData.whyUs.description}
-                      onChange={(e) => setFormData({ ...formData, whyUs: { ...formData.whyUs, description: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Why Us CTA Button Text</label>
-                    <input
-                      type="text"
-                      value={formData.whyUs.ctaText}
-                      onChange={(e) => setFormData({ ...formData, whyUs: { ...formData.whyUs, ctaText: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <h3 className="text-sm font-semibold text-primary">Why Us Features List (8 Items)</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {formData.whyUs.features.map((item, idx) => (
-                      <div key={item.id} className="rounded-xl border border-border p-3 bg-background">
-                        <input
-                          type="text"
-                          value={item.title}
-                          onChange={(e) => {
-                            const updated = [...formData.whyUs.features];
-                            updated[idx].title = e.target.value;
-                            setFormData({ ...formData, whyUs: { ...formData.whyUs, features: updated } });
-                          }}
-                          placeholder="Feature Title"
-                          className="w-full rounded-lg border px-3 py-1.5 text-xs font-semibold mb-2"
-                        />
-                        <input
-                          type="text"
-                          value={item.description}
-                          onChange={(e) => {
-                            const updated = [...formData.whyUs.features];
-                            updated[idx].description = e.target.value;
-                            setFormData({ ...formData, whyUs: { ...formData.whyUs, features: updated } });
-                          }}
-                          placeholder="Feature Description"
-                          className="w-full rounded-lg border px-3 py-1.5 text-xs"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -686,7 +687,12 @@ function AdminPage() {
             <div className="space-y-8">
               {/* Mounjaro Products */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
-                <h2 className="font-display text-2xl text-primary font-semibold">Mounjaro Doses Section Copy & Pricing</h2>
+                <SectionToggle
+                  label="Mounjaro Doses Section"
+                  hidden={formData.hiddenSections?.mounjaroTreatment}
+                  onToggle={(h) => toggleSection("mounjaroTreatment", h)}
+                />
+                <h2 className="font-display text-2xl text-primary font-semibold">Mounjaro Doses Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Mounjaro Eyebrow</label>
@@ -707,57 +713,16 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 border-t border-border">
-                  {formData.products.map((p, idx) => (
-                    <div key={p.id} className="rounded-2xl border border-border p-4 bg-background space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-display font-bold text-lg text-primary">Dose: {p.dose}</span>
-                        <input
-                          type="text"
-                          value={p.tag}
-                          onChange={(e) => {
-                            const updated = [...formData.products];
-                            updated[idx].tag = e.target.value;
-                            setFormData({ ...formData, products: updated });
-                          }}
-                          className="text-xs border rounded-lg px-2 py-1 w-28 bg-card text-right font-medium"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-muted-foreground">Price *</label>
-                        <input
-                          type="text"
-                          value={p.price}
-                          onChange={(e) => {
-                            const updated = [...formData.products];
-                            updated[idx].price = e.target.value;
-                            setFormData({ ...formData, products: updated });
-                          }}
-                          className="w-full rounded-lg border px-3 py-1.5 text-sm font-semibold text-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-muted-foreground">Description</label>
-                        <textarea
-                          rows={2}
-                          value={p.desc}
-                          onChange={(e) => {
-                            const updated = [...formData.products];
-                            updated[idx].desc = e.target.value;
-                            setFormData({ ...formData, products: updated });
-                          }}
-                          className="w-full rounded-lg border px-3 py-1.5 text-xs text-foreground"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               {/* Compounded Products */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
-                <h2 className="font-display text-2xl text-primary font-semibold">Compounded Tirzepatide Section Copy & Pricing</h2>
+                <SectionToggle
+                  label="Compounded Tirzepatide Section"
+                  hidden={formData.hiddenSections?.compoundedTreatment}
+                  onToggle={(h) => toggleSection("compoundedTreatment", h)}
+                />
+                <h2 className="font-display text-2xl text-primary font-semibold">Compounded Tirzepatide Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Compounded Eyebrow</label>
@@ -778,43 +743,6 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 border-t border-border">
-                  {formData.compoundedProducts.map((p, idx) => (
-                    <div key={p.id} className="rounded-2xl border border-border p-4 bg-background space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-display font-bold text-lg text-primary">{p.total}</span>
-                        <span className="text-xs text-gold font-medium">{p.breakdown}</span>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-muted-foreground">Price *</label>
-                        <input
-                          type="text"
-                          value={p.price}
-                          onChange={(e) => {
-                            const updated = [...formData.compoundedProducts];
-                            updated[idx].price = e.target.value;
-                            setFormData({ ...formData, compoundedProducts: updated });
-                          }}
-                          className="w-full rounded-lg border px-3 py-1.5 text-sm font-semibold text-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-muted-foreground">Description</label>
-                        <textarea
-                          rows={2}
-                          value={p.desc}
-                          onChange={(e) => {
-                            const updated = [...formData.compoundedProducts];
-                            updated[idx].desc = e.target.value;
-                            setFormData({ ...formData, compoundedProducts: updated });
-                          }}
-                          className="w-full rounded-lg border px-3 py-1.5 text-xs text-foreground"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -824,6 +752,11 @@ function AdminPage() {
             <div className="space-y-8">
               {/* Gallery Section */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Stock Product Gallery & Video"
+                  hidden={formData.hiddenSections?.gallery}
+                  onToggle={(h) => toggleSection("gallery", h)}
+                />
                 <h2 className="font-display text-2xl text-primary font-semibold">Stock Gallery Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -845,20 +778,15 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Gallery Paragraph</label>
-                  <textarea
-                    rows={2}
-                    value={formData.gallery.description}
-                    onChange={(e) => setFormData({ ...formData, gallery: { ...formData.gallery, description: e.target.value } })}
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                  />
-                </div>
               </div>
 
-              {/* Patient Results & Stats */}
+              {/* Patient Results */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Patient Results & Transformations"
+                  hidden={formData.hiddenSections?.results}
+                  onToggle={(h) => toggleSection("results", h)}
+                />
                 <h2 className="font-display text-2xl text-primary font-semibold">Patient Results & Statistics</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -880,81 +808,6 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <h3 className="text-sm font-semibold text-primary">3 Stat Counters</h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {formData.results.stats.map((s, idx) => (
-                      <div key={s.id} className="rounded-xl border border-border p-3 bg-background">
-                        <input
-                          type="text"
-                          value={s.value}
-                          onChange={(e) => {
-                            const updated = [...formData.results.stats];
-                            updated[idx].value = e.target.value;
-                            setFormData({ ...formData, results: { ...formData.results, stats: updated } });
-                          }}
-                          placeholder="Stat Value (e.g. 2,400+)"
-                          className="w-full rounded-lg border px-3 py-1.5 text-sm font-bold text-primary mb-2"
-                        />
-                        <input
-                          type="text"
-                          value={s.label}
-                          onChange={(e) => {
-                            const updated = [...formData.results.stats];
-                            updated[idx].label = e.target.value;
-                            setFormData({ ...formData, results: { ...formData.results, stats: updated } });
-                          }}
-                          placeholder="Stat Label"
-                          className="w-full rounded-lg border px-3 py-1.5 text-xs"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <h3 className="text-sm font-semibold text-primary">Patient Quotes & Reviews</h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {formData.results.testimonials.map((t, idx) => (
-                      <div key={t.id} className="rounded-xl border border-border p-3 bg-background space-y-2">
-                        <input
-                          type="text"
-                          value={t.name}
-                          onChange={(e) => {
-                            const updated = [...formData.results.testimonials];
-                            updated[idx].name = e.target.value;
-                            setFormData({ ...formData, results: { ...formData.results, testimonials: updated } });
-                          }}
-                          placeholder="Patient Name"
-                          className="w-full rounded-lg border px-3 py-1 text-xs font-semibold"
-                        />
-                        <input
-                          type="text"
-                          value={t.city}
-                          onChange={(e) => {
-                            const updated = [...formData.results.testimonials];
-                            updated[idx].city = e.target.value;
-                            setFormData({ ...formData, results: { ...formData.results, testimonials: updated } });
-                          }}
-                          placeholder="City"
-                          className="w-full rounded-lg border px-3 py-1 text-xs"
-                        />
-                        <textarea
-                          rows={2}
-                          value={t.quote}
-                          onChange={(e) => {
-                            const updated = [...formData.results.testimonials];
-                            updated[idx].quote = e.target.value;
-                            setFormData({ ...formData, results: { ...formData.results, testimonials: updated } });
-                          }}
-                          placeholder="Quote"
-                          className="w-full rounded-lg border px-3 py-1 text-xs"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -962,9 +815,14 @@ function AdminPage() {
           {/* TAB 5: BMI, FAQ & CONSULT */}
           {activeTab === "bmi_faq" && (
             <div className="space-y-8">
-              {/* BMI Tool & Consult */}
+              {/* BMI Tool */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
-                <h2 className="font-display text-2xl text-primary font-semibold">BMI Tool & Consult CTA Section</h2>
+                <SectionToggle
+                  label="BMI Calculator & Projection Tool"
+                  hidden={formData.hiddenSections?.bmiSection}
+                  onToggle={(h) => toggleSection("bmiSection", h)}
+                />
+                <h2 className="font-display text-2xl text-primary font-semibold">BMI Calculator Section</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">BMI Eyebrow</label>
@@ -985,33 +843,17 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-
-                <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-border">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Consult Banner Headline</label>
-                    <input
-                      type="text"
-                      value={formData.consultSection.headline}
-                      onChange={(e) => setFormData({ ...formData, consultSection: { ...formData.consultSection, headline: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Consult Paragraph</label>
-                    <textarea
-                      rows={2}
-                      value={formData.consultSection.description}
-                      onChange={(e) => setFormData({ ...formData, consultSection: { ...formData.consultSection, description: e.target.value } })}
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
-                    />
-                  </div>
-                </div>
               </div>
 
-              {/* FAQ Editor */}
+              {/* FAQ */}
               <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Frequently Asked Questions (FAQ)"
+                  hidden={formData.hiddenSections?.faqSection}
+                  onToggle={(h) => toggleSection("faqSection", h)}
+                />
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display text-2xl text-primary font-semibold">Frequently Asked Questions ({formData.faq.length})</h2>
+                  <h2 className="font-display text-2xl text-primary font-semibold">FAQ Items ({formData.faq.length})</h2>
                   <button
                     type="button"
                     onClick={() => {
@@ -1052,7 +894,6 @@ function AdminPage() {
                           updated[idx].q = e.target.value;
                           setFormData({ ...formData, faq: updated });
                         }}
-                        placeholder="Question Title *"
                         className="w-full rounded-lg border px-3 py-2 text-sm font-medium"
                       />
                       <textarea
@@ -1063,11 +904,40 @@ function AdminPage() {
                           updated[idx].a = e.target.value;
                           setFormData({ ...formData, faq: updated });
                         }}
-                        placeholder="Answer Content *"
                         className="w-full rounded-lg border px-3 py-2 text-xs"
                       />
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Consult Banner */}
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <SectionToggle
+                  label="Consultation Booking CTA Banner"
+                  hidden={formData.hiddenSections?.consultSection}
+                  onToggle={(h) => toggleSection("consultSection", h)}
+                />
+                <h2 className="font-display text-2xl text-primary font-semibold">Consultation Banner</h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Consult Headline</label>
+                    <input
+                      type="text"
+                      value={formData.consultSection.headline}
+                      onChange={(e) => setFormData({ ...formData, consultSection: { ...formData.consultSection, headline: e.target.value } })}
+                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Consult Description</label>
+                    <textarea
+                      rows={2}
+                      value={formData.consultSection.description}
+                      onChange={(e) => setFormData({ ...formData, consultSection: { ...formData.consultSection, description: e.target.value } })}
+                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1089,12 +959,7 @@ function AdminPage() {
                   <input
                     type="text"
                     value={formData.seo.faviconUrl}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        seo: { ...formData.seo, faviconUrl: e.target.value },
-                      })
-                    }
+                    onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, faviconUrl: e.target.value } })}
                     placeholder="https://example.com/favicon.ico"
                     className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
                   />
@@ -1108,12 +973,7 @@ function AdminPage() {
                   <input
                     type="text"
                     value={formData.seo.ogImageUrl}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        seo: { ...formData.seo, ogImageUrl: e.target.value },
-                      })
-                    }
+                    onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, ogImageUrl: e.target.value } })}
                     placeholder="https://example.com/og-image.jpg"
                     className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
                   />
@@ -1260,7 +1120,7 @@ function AdminPage() {
               </div>
               <h3 className="font-display text-2xl font-bold text-primary mb-2">Updates Validated & Saved!</h3>
               <p className="text-sm text-muted-foreground mb-6">
-                All site modifications, SEO settings, and tracking scripts have been validated and saved successfully. The live website is updated.
+                All site modifications, section visibility settings, SEO meta tags, and tracking scripts have been validated and saved successfully. The live website is updated.
               </p>
               <div className="text-xs text-emerald-600 font-medium mb-6 bg-emerald-500/10 py-2 rounded-xl border border-emerald-500/20">
                 Validated at {lastSavedTimestamp}
@@ -1282,7 +1142,7 @@ function AdminPage() {
             <div className="max-w-md w-full bg-card rounded-3xl p-6 border border-border shadow-2xl">
               <h3 className="font-display text-xl font-bold text-primary mb-2">Reset Site Settings?</h3>
               <p className="text-sm text-muted-foreground mb-6">
-                Are you sure you want to restore original default copy, prices, SEO settings, and links? Custom changes will be cleared.
+                Are you sure you want to restore original default copy, prices, section visibility, SEO settings, and links? Custom changes will be cleared.
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
