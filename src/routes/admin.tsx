@@ -299,7 +299,7 @@ function AdminPage() {
         </div>
       </header>
 
-      {/* Main content layout with Right Sidebar Navigation */}
+      {/* Main content layout with Left Sidebar Navigation */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
         {/* Validation Errors Alert Banner */}
         {Object.keys(errors).length > 0 && (
@@ -316,7 +316,66 @@ function AdminPage() {
         )}
 
         <form onSubmit={handleSave} className="grid lg:grid-cols-4 gap-8 items-start">
-          {/* LEFT CONTENT AREA: Active Tab Form Content */}
+          {/* LEFT SIDEBAR: Vertical Admin Navigation Bar */}
+          <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-luxe space-y-2">
+              <div className="text-xs uppercase tracking-widest font-bold text-gold px-3 mb-3 flex items-center justify-between">
+                <span>Admin Menu</span>
+                <span className="text-[10px] text-muted-foreground">Left Nav</span>
+              </div>
+              {[
+                { id: "visibility", label: "👁 Section Visibility", badge: `${12 - hiddenCount}/12` },
+                { id: "hero", label: "📝 Hero & Header" },
+                { id: "pain_why", label: "💥 Pain Points & Why Us" },
+                { id: "products", label: "💊 Treatment & Products" },
+                { id: "results_gallery", label: "📸 Gallery & Results" },
+                { id: "bmi_faq", label: "⚖️ BMI, FAQ & Consult" },
+                { id: "seo", label: "🔍 Brand & SEO" },
+                { id: "tracking", label: "📊 Tracking Scripts" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold transition flex items-center justify-between ${
+                    activeTab === tab.id
+                      ? "bg-primary text-primary-foreground font-bold shadow-md"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.badge ? (
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full ${
+                        activeTab === tab.id ? "bg-gold/20 text-gold font-bold" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {tab.badge}
+                    </span>
+                  ) : (
+                    activeTab === tab.id && <span className="text-gold font-bold">▶</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-luxe space-y-3">
+              <div className="text-xs font-bold text-primary mb-1">Quick Actions</div>
+              <button
+                type="submit"
+                className="w-full rounded-full bg-gold py-3 text-xs font-semibold uppercase tracking-wider text-gold-foreground shadow-gold hover:opacity-90 transition"
+              >
+                Save All Changes
+              </button>
+              {isDirty && (
+                <div className="text-[11px] text-amber-600 text-center font-medium">
+                  ⚠️ You have unsaved changes
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT CONTENT AREA: Active Tab Form Content */}
           <div className="lg:col-span-3 space-y-8">
             {/* TAB 0: SECTION VISIBILITY CONTROL PANEL */}
             {activeTab === "visibility" && (
@@ -1084,65 +1143,6 @@ function AdminPage() {
                   <span>Save All Changes</span>
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* RIGHT SIDEBAR: Vertical Admin Navigation Bar */}
-          <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-luxe space-y-2">
-              <div className="text-xs uppercase tracking-widest font-bold text-gold px-3 mb-3 flex items-center justify-between">
-                <span>Admin Menu</span>
-                <span className="text-[10px] text-muted-foreground">Right Nav</span>
-              </div>
-              {[
-                { id: "visibility", label: "👁 Section Visibility", badge: `${12 - hiddenCount}/12` },
-                { id: "hero", label: "📝 Hero & Header" },
-                { id: "pain_why", label: "💥 Pain Points & Why Us" },
-                { id: "products", label: "💊 Treatment & Products" },
-                { id: "results_gallery", label: "📸 Gallery & Results" },
-                { id: "bmi_faq", label: "⚖️ BMI, FAQ & Consult" },
-                { id: "seo", label: "🔍 Brand & SEO" },
-                { id: "tracking", label: "📊 Tracking Scripts" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold transition flex items-center justify-between ${
-                    activeTab === tab.id
-                      ? "bg-primary text-primary-foreground font-bold shadow-md"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                  {tab.badge ? (
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full ${
-                        activeTab === tab.id ? "bg-gold/20 text-gold" : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {tab.badge}
-                    </span>
-                  ) : (
-                    activeTab === tab.id && <span className="text-gold">◀</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-luxe space-y-3">
-              <div className="text-xs font-bold text-primary mb-1">Quick Actions</div>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-gold py-3 text-xs font-semibold uppercase tracking-wider text-gold-foreground shadow-gold hover:opacity-90 transition"
-              >
-                Save All Changes
-              </button>
-              {isDirty && (
-                <div className="text-[11px] text-amber-600 text-center font-medium">
-                  ⚠️ You have unsaved changes
-                </div>
-              )}
             </div>
           </div>
         </form>
