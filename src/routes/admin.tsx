@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSiteConfig } from "@/components/SiteConfigContext";
-import type { SiteConfig, ProductItem, CompoundedProductItem, FaqItem } from "@/lib/site-config";
+import type { SiteConfig, FaqItem } from "@/lib/site-config";
 import logoImg from "@/assets/ope14.jpeg";
 
 export const Route = createFileRoute("/admin")({
@@ -16,6 +16,108 @@ export const Route = createFileRoute("/admin")({
 
 const AUTH_KEY = "bodyzenith_admin_auth";
 
+interface ValidationErrors {
+  [key: string]: string;
+}
+
+function isValidUrlOrPath(val: string): boolean {
+  if (!val.trim()) return true;
+  if (val.startsWith("/") || val.startsWith("#")) return true;
+  try {
+    const url = new URL(val.startsWith("wa.me") ? `https://${val}` : val);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateConfig(config: SiteConfig): ValidationErrors {
+  const errors: ValidationErrors = {};
+
+  // Contact Links
+  if (!config.contact.phone.trim()) {
+    errors["contact.phone"] = "Display Phone Number is required.";
+  }
+  if (!config.contact.phoneIntl.trim()) {
+    errors["contact.phoneIntl"] = "International Phone Number is required.";
+  }
+  if (config.contact.whatsappUrl && !isValidUrlOrPath(config.contact.whatsappUrl)) {
+    errors["contact.whatsappUrl"] = "Invalid URL. Must start with http://, https://, or wa.me/";
+  }
+  if (config.contact.instagramUrl && !isValidUrlOrPath(config.contact.instagramUrl)) {
+    errors["contact.instagramUrl"] = "Invalid Instagram URL format.";
+  }
+  if (config.contact.mapsUrl && !isValidUrlOrPath(config.contact.mapsUrl)) {
+    errors["contact.mapsUrl"] = "Invalid Google Maps URL format.";
+  }
+
+  // Hero Section
+  if (!config.hero.headline.trim()) {
+    errors["hero.headline"] = "Main Headline is required.";
+  }
+  if (!config.hero.primaryCtaText.trim()) {
+    errors["hero.primaryCtaText"] = "Primary CTA Text is required.";
+  }
+  if (config.hero.primaryCtaUrl && !isValidUrlOrPath(config.hero.primaryCtaUrl)) {
+    errors["hero.primaryCtaUrl"] = "Invalid CTA Link target format.";
+  }
+
+  // Products
+  config.products.forEach((p, idx) => {
+    if (!p.price.trim()) {
+      errors[`products.${idx}.price`] = `Price for dose ${p.dose} is required.`;
+    }
+  });
+
+  // FAQ
+  config.faq.forEach((item, idx) => {
+    if (!item.q.trim()) {
+      errors[`faq.${idx}.q`] = `Question #${idx + 1} title cannot be empty.`;
+    }
+    if (!item.a.trim()) {
+      errors[`faq.${idx}.a`] = `Answer #${idx + 1} content cannot be empty.`;
+    }
+  });
+
+  // SEO & Brand
+  if (!config.seo.title.trim()) {
+    errors["seo.title"] = "SEO Title Tag is required.";
+  }
+  if (!config.seo.description.trim()) {
+    errors["seo.description"] = "SEO Meta Description is required.";
+  }
+  if (config.seo.faviconUrl && !isValidUrlOrPath(config.seo.faviconUrl)) {
+    errors["seo.faviconUrl"] = "Favicon URL must be a valid http://, https://, or relative path.";
+  }
+  if (config.seo.ogImageUrl && !isValidUrlOrPath(config.seo.ogImageUrl)) {
+    errors["seo.ogImageUrl"] = "Social Media Thumbnail URL must be a valid http://, https://, or relative path.";
+  }
+
+  // Marketing & Tracking IDs
+  if (config.tracking.googleTagManagerId.trim()) {
+    const gtmId = config.tracking.googleTagManagerId.trim();
+    if (!/^(GTM-[A-Z0-9]+|G-[A-Z0-9]+|UA-\d+-\d+)$/i.test(gtmId)) {
+      errors["tracking.googleTagManagerId"] = "Format must match GTM-XXXXXXX or G-XXXXXXX or UA-XXXXX-X";
+    }
+  }
+
+  if (config.tracking.facebookPixelId.trim()) {
+    const fbId = config.tracking.facebookPixelId.trim();
+    if (!/^\d+$/.test(fbId)) {
+      errors["tracking.facebookPixelId"] = "Facebook Pixel ID must contain numbers only.";
+    }
+  }
+
+  if (config.tracking.tiktokPixelId.trim()) {
+    const ttId = config.tracking.tiktokPixelId.trim();
+    if (!/^[A-Za-z0-9]+$/.test(ttId)) {
+      errors["tracking.tiktokPixelId"] = "TikTok Pixel ID must be alphanumeric.";
+    }
+  }
+
+  return errors;
+}
+
 function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [usernameInput, setUsernameInput] = useState("");
@@ -25,7 +127,10 @@ function AdminPage() {
   const { config, updateConfig, resetConfig } = useSiteConfig();
   const [formData, setFormData] = useState<SiteConfig>(config);
   const [activeTab, setActiveTab] = useState<"copy" | "seo" | "tracking">("copy");
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [saveSuccessModal, setSaveSuccessModal] = useState<boolean>(false);
+  const [lastSavedTimestamp, setLastSavedTimestamp] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
@@ -40,6 +145,26 @@ function AdminPage() {
   useEffect(() => {
     setFormData(config);
   }, [config]);
+
+  // Check for unsaved changes
+  const isDirty = useMemo(() => {
+    return JSON.stringify(formData) !== JSON.stringify(config);
+  }, [formData, config]);
+
+  // Count tab-specific errors
+  const copyErrorsCount = useMemo(() => {
+    return Object.keys(errors).filter(
+      (k) => k.startsWith("contact.") || k.startsWith("hero.") || k.startsWith("products.") || k.startsWith("faq.")
+    ).length;
+  }, [errors]);
+
+  const seoErrorsCount = useMemo(() => {
+    return Object.keys(errors).filter((k) => k.startsWith("seo.")).length;
+  }, [errors]);
+
+  const trackingErrorsCount = useMemo(() => {
+    return Object.keys(errors).filter((k) => k.startsWith("tracking.")).length;
+  }, [errors]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,16 +185,37 @@ function AdminPage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Perform strict input validation
+    const validationErrors = validateConfig(formData);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      // Switch tab to first tab containing error
+      if (copyErrorsCount > 0) setActiveTab("copy");
+      else if (seoErrorsCount > 0) setActiveTab("seo");
+      else if (trackingErrorsCount > 0) setActiveTab("tracking");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    // 2. Clear errors and apply updates
+    setErrors({});
     updateConfig(formData);
-    setSaveSuccess("All changes saved successfully! The site has been updated.");
-    setTimeout(() => setSaveSuccess(null), 4000);
+
+    const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    setLastSavedTimestamp(now);
+    setSaveSuccessModal(true);
   };
 
   const handleReset = () => {
     resetConfig();
     setShowResetConfirm(false);
-    setSaveSuccess("Site configuration reset to original defaults!");
-    setTimeout(() => setSaveSuccess(null), 4000);
+    setErrors({});
+    const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    setLastSavedTimestamp(now);
+    setSaveSuccessModal(true);
   };
 
   if (!isAuthenticated) {
@@ -143,8 +289,18 @@ function AdminPage() {
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="Logo" className="h-10 w-10 object-contain" />
             <div>
-              <h1 className="font-display text-xl font-bold text-primary">Site Management Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Wellness Journey Nigeria Admin</p>
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-xl font-bold text-primary">Site Management Dashboard</h1>
+                {isDirty && (
+                  <span className="rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase">
+                    Unsaved Edits
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Wellness Journey Nigeria Admin
+                {lastSavedTimestamp && <span className="ml-2 text-emerald-600 font-medium">· Last validated & saved at {lastSavedTimestamp}</span>}
+              </p>
             </div>
           </div>
 
@@ -168,18 +324,18 @@ function AdminPage() {
 
       {/* Main content area */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        {saveSuccess && (
-          <div className="mb-6 rounded-2xl bg-emerald-deep text-cream p-4 border border-gold/40 flex items-center justify-between shadow-lg">
-            <div className="flex items-center gap-3">
-              <span className="text-gold text-xl">✓</span>
-              <span className="text-sm font-medium">{saveSuccess}</span>
+        {/* Validation Errors Alert Banner */}
+        {Object.keys(errors).length > 0 && (
+          <div className="mb-6 rounded-2xl bg-destructive/10 border border-destructive/30 p-5 text-destructive shadow-sm">
+            <div className="flex items-center gap-2 font-semibold text-base mb-2">
+              <span>⚠️</span> Cannot Save: Validation Errors Found ({Object.keys(errors).length})
             </div>
-            <button
-              onClick={() => setSaveSuccess(null)}
-              className="text-cream/70 hover:text-cream text-xs uppercase"
-            >
-              Dismiss
-            </button>
+            <p className="text-xs opacity-90 mb-3">Please fix the highlighted errors below before saving changes:</p>
+            <ul className="list-disc list-inside space-y-1 text-xs font-medium">
+              {Object.entries(errors).map(([key, msg]) => (
+                <li key={key}>{msg}</li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -187,33 +343,50 @@ function AdminPage() {
         <div className="flex border-b border-border mb-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab("copy")}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === "copy"
                 ? "border-gold text-primary font-semibold"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            📝 Copy & Links
+            <span>📝 Copy & Links</span>
+            {copyErrorsCount > 0 && (
+              <span className="rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-[10px] font-bold">
+                {copyErrorsCount}
+              </span>
+            )}
           </button>
+
           <button
             onClick={() => setActiveTab("seo")}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === "seo"
                 ? "border-gold text-primary font-semibold"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            🔍 Brand & SEO Settings
+            <span>🔍 Brand & SEO Settings</span>
+            {seoErrorsCount > 0 && (
+              <span className="rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-[10px] font-bold">
+                {seoErrorsCount}
+              </span>
+            )}
           </button>
+
           <button
             onClick={() => setActiveTab("tracking")}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
               activeTab === "tracking"
                 ? "border-gold text-primary font-semibold"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            📊 Marketing & Tracking Scripts
+            <span>📊 Marketing & Tracking Scripts</span>
+            {trackingErrorsCount > 0 && (
+              <span className="rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-[10px] font-bold">
+                {trackingErrorsCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -227,7 +400,7 @@ function AdminPage() {
                 <div className="grid md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                      Display Phone Number
+                      Display Phone Number *
                     </label>
                     <input
                       type="text"
@@ -238,13 +411,16 @@ function AdminPage() {
                           contact: { ...formData.contact, phone: e.target.value },
                         })
                       }
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                      className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                        errors["contact.phone"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                      }`}
                     />
+                    {errors["contact.phone"] && <p className="text-[11px] text-destructive mt-1">{errors["contact.phone"]}</p>}
                   </div>
 
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                      International Phone Number (for tel: link)
+                      International Phone Number (for tel: link) *
                     </label>
                     <input
                       type="text"
@@ -255,8 +431,11 @@ function AdminPage() {
                           contact: { ...formData.contact, phoneIntl: e.target.value },
                         })
                       }
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                      className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                        errors["contact.phoneIntl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                      }`}
                     />
+                    {errors["contact.phoneIntl"] && <p className="text-[11px] text-destructive mt-1">{errors["contact.phoneIntl"]}</p>}
                   </div>
 
                   <div>
@@ -272,8 +451,12 @@ function AdminPage() {
                           contact: { ...formData.contact, whatsappUrl: e.target.value },
                         })
                       }
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                      placeholder="https://wa.me/2347036809459"
+                      className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                        errors["contact.whatsappUrl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                      }`}
                     />
+                    {errors["contact.whatsappUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["contact.whatsappUrl"]}</p>}
                   </div>
 
                   <div>
@@ -289,8 +472,12 @@ function AdminPage() {
                           contact: { ...formData.contact, instagramUrl: e.target.value },
                         })
                       }
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                      placeholder="https://www.instagram.com/wellnessjourneyltd/"
+                      className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                        errors["contact.instagramUrl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                      }`}
                     />
+                    {errors["contact.instagramUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["contact.instagramUrl"]}</p>}
                   </div>
 
                   <div>
@@ -306,8 +493,12 @@ function AdminPage() {
                           contact: { ...formData.contact, mapsUrl: e.target.value },
                         })
                       }
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                      placeholder="https://maps.app.goo.gl/..."
+                      className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                        errors["contact.mapsUrl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                      }`}
                     />
+                    {errors["contact.mapsUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["contact.mapsUrl"]}</p>}
                   </div>
 
                   <div>
@@ -371,7 +562,7 @@ function AdminPage() {
 
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                      Main Headline
+                      Main Headline *
                     </label>
                     <input
                       type="text"
@@ -382,8 +573,11 @@ function AdminPage() {
                           hero: { ...formData.hero, headline: e.target.value },
                         })
                       }
-                      className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                      className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                        errors["hero.headline"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                      }`}
                     />
+                    {errors["hero.headline"] && <p className="text-[11px] text-destructive mt-1">{errors["hero.headline"]}</p>}
                   </div>
 
                   <div>
@@ -406,7 +600,7 @@ function AdminPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                        Primary CTA Button Text
+                        Primary CTA Button Text *
                       </label>
                       <input
                         type="text"
@@ -417,8 +611,11 @@ function AdminPage() {
                             hero: { ...formData.hero, primaryCtaText: e.target.value },
                           })
                         }
-                        className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                        className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                          errors["hero.primaryCtaText"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                        }`}
                       />
+                      {errors["hero.primaryCtaText"] && <p className="text-[11px] text-destructive mt-1">{errors["hero.primaryCtaText"]}</p>}
                     </div>
 
                     <div>
@@ -434,8 +631,11 @@ function AdminPage() {
                             hero: { ...formData.hero, primaryCtaUrl: e.target.value },
                           })
                         }
-                        className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                        className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                          errors["hero.primaryCtaUrl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                        }`}
                       />
+                      {errors["hero.primaryCtaUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["hero.primaryCtaUrl"]}</p>}
                     </div>
                   </div>
 
@@ -500,7 +700,7 @@ function AdminPage() {
 
                       <div className="space-y-3 mt-3">
                         <div>
-                          <label className="block text-[10px] uppercase text-muted-foreground mb-0.5">Price</label>
+                          <label className="block text-[10px] uppercase text-muted-foreground mb-0.5">Price *</label>
                           <input
                             type="text"
                             value={p.price}
@@ -509,8 +709,13 @@ function AdminPage() {
                               updated[idx].price = e.target.value;
                               setFormData({ ...formData, products: updated });
                             }}
-                            className="w-full rounded-lg border px-3 py-1.5 text-sm font-semibold text-primary"
+                            className={`w-full rounded-lg border px-3 py-1.5 text-sm font-semibold text-primary focus:outline-none ${
+                              errors[`products.${idx}.price`] ? "border-destructive" : "border-input focus:border-gold"
+                            }`}
                           />
+                          {errors[`products.${idx}.price`] && (
+                            <p className="text-[10px] text-destructive mt-0.5">{errors[`products.${idx}.price`]}</p>
+                          )}
                         </div>
 
                         <div>
@@ -570,28 +775,39 @@ function AdminPage() {
                       </div>
 
                       <div className="space-y-3">
-                        <input
-                          type="text"
-                          value={item.q}
-                          onChange={(e) => {
-                            const updated = [...formData.faq];
-                            updated[idx].q = e.target.value;
-                            setFormData({ ...formData, faq: updated });
-                          }}
-                          placeholder="Question"
-                          className="w-full rounded-lg border px-3 py-2 text-sm font-medium"
-                        />
-                        <textarea
-                          rows={2}
-                          value={item.a}
-                          onChange={(e) => {
-                            const updated = [...formData.faq];
-                            updated[idx].a = e.target.value;
-                            setFormData({ ...formData, faq: updated });
-                          }}
-                          placeholder="Answer"
-                          className="w-full rounded-lg border px-3 py-2 text-xs"
-                        />
+                        <div>
+                          <input
+                            type="text"
+                            value={item.q}
+                            onChange={(e) => {
+                              const updated = [...formData.faq];
+                              updated[idx].q = e.target.value;
+                              setFormData({ ...formData, faq: updated });
+                            }}
+                            placeholder="Question Title *"
+                            className={`w-full rounded-lg border px-3 py-2 text-sm font-medium ${
+                              errors[`faq.${idx}.q`] ? "border-destructive" : "border-input"
+                            }`}
+                          />
+                          {errors[`faq.${idx}.q`] && <p className="text-[10px] text-destructive mt-0.5">{errors[`faq.${idx}.q`]}</p>}
+                        </div>
+
+                        <div>
+                          <textarea
+                            rows={2}
+                            value={item.a}
+                            onChange={(e) => {
+                              const updated = [...formData.faq];
+                              updated[idx].a = e.target.value;
+                              setFormData({ ...formData, faq: updated });
+                            }}
+                            placeholder="Answer Content *"
+                            className={`w-full rounded-lg border px-3 py-2 text-xs ${
+                              errors[`faq.${idx}.a`] ? "border-destructive" : "border-input"
+                            }`}
+                          />
+                          {errors[`faq.${idx}.a`] && <p className="text-[10px] text-destructive mt-0.5">{errors[`faq.${idx}.a`]}</p>}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -623,8 +839,11 @@ function AdminPage() {
                       })
                     }
                     placeholder="https://example.com/favicon.ico"
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                      errors["seo.faviconUrl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["seo.faviconUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["seo.faviconUrl"]}</p>}
                   <p className="text-[11px] text-muted-foreground mt-1">Direct URL to .ico, .png, or .svg icon.</p>
                 </div>
 
@@ -642,8 +861,11 @@ function AdminPage() {
                       })
                     }
                     placeholder="https://example.com/og-image.jpg"
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                      errors["seo.ogImageUrl"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["seo.ogImageUrl"] && <p className="text-[11px] text-destructive mt-1">{errors["seo.ogImageUrl"]}</p>}
                   <p className="text-[11px] text-muted-foreground mt-1">Image shown when sharing links on WhatsApp, Twitter, FB.</p>
                 </div>
               </div>
@@ -651,7 +873,7 @@ function AdminPage() {
               <div className="space-y-4 pt-4 border-t border-border">
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                    SEO Title Tag
+                    SEO Title Tag *
                   </label>
                   <input
                     type="text"
@@ -662,13 +884,16 @@ function AdminPage() {
                         seo: { ...formData.seo, title: e.target.value },
                       })
                     }
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                      errors["seo.title"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["seo.title"] && <p className="text-[11px] text-destructive mt-1">{errors["seo.title"]}</p>}
                 </div>
 
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                    SEO Meta Description
+                    SEO Meta Description *
                   </label>
                   <textarea
                     rows={3}
@@ -679,8 +904,11 @@ function AdminPage() {
                         seo: { ...formData.seo, description: e.target.value },
                       })
                     }
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none ${
+                      errors["seo.description"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["seo.description"] && <p className="text-[11px] text-destructive mt-1">{errors["seo.description"]}</p>}
                 </div>
 
                 <div>
@@ -762,8 +990,13 @@ function AdminPage() {
                       })
                     }
                     placeholder="GTM-XXXXXXX or G-XXXXXXX"
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold font-mono"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm font-mono focus:outline-none ${
+                      errors["tracking.googleTagManagerId"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["tracking.googleTagManagerId"] && (
+                    <p className="text-[11px] text-destructive mt-1">{errors["tracking.googleTagManagerId"]}</p>
+                  )}
                   <p className="text-[11px] text-muted-foreground mt-1">Automatically loads Google Tag Manager or GA4 snippet.</p>
                 </div>
 
@@ -781,8 +1014,13 @@ function AdminPage() {
                       })
                     }
                     placeholder="123456789012345"
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold font-mono"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm font-mono focus:outline-none ${
+                      errors["tracking.facebookPixelId"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["tracking.facebookPixelId"] && (
+                    <p className="text-[11px] text-destructive mt-1">{errors["tracking.facebookPixelId"]}</p>
+                  )}
                   <p className="text-[11px] text-muted-foreground mt-1">Loads Meta Pixel snippet & tracks PageView events.</p>
                 </div>
 
@@ -800,8 +1038,13 @@ function AdminPage() {
                       })
                     }
                     placeholder="C1234567890"
-                    className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold font-mono"
+                    className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm font-mono focus:outline-none ${
+                      errors["tracking.tiktokPixelId"] ? "border-destructive focus:border-destructive" : "border-input focus:border-gold"
+                    }`}
                   />
+                  {errors["tracking.tiktokPixelId"] && (
+                    <p className="text-[11px] text-destructive mt-1">{errors["tracking.tiktokPixelId"]}</p>
+                  )}
                   <p className="text-[11px] text-muted-foreground mt-1">Loads TikTok Pixel SDK and tracks PageView.</p>
                 </div>
               </div>
@@ -858,14 +1101,44 @@ function AdminPage() {
               Reset to Defaults
             </button>
 
-            <button
-              type="submit"
-              className="rounded-full bg-gold px-8 py-3.5 text-sm font-semibold uppercase tracking-wider text-gold-foreground shadow-gold hover:opacity-90 transition"
-            >
-              Save All Changes
-            </button>
+            <div className="flex items-center gap-4">
+              {isDirty && (
+                <span className="text-xs text-amber-600 font-medium">⚠️ Unsaved changes pending</span>
+              )}
+              <button
+                type="submit"
+                className="rounded-full bg-gold px-8 py-3.5 text-sm font-semibold uppercase tracking-wider text-gold-foreground shadow-gold hover:opacity-90 transition flex items-center gap-2"
+              >
+                <span>Save All Changes</span>
+              </button>
+            </div>
           </div>
         </form>
+
+        {/* Save Confirmation Success Modal */}
+        {saveSuccessModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-card rounded-3xl p-6 border border-gold/40 shadow-2xl text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-deep text-gold flex items-center justify-center text-3xl mx-auto mb-4 border border-gold/40">
+                ✓
+              </div>
+              <h3 className="font-display text-2xl font-bold text-primary mb-2">Updates Validated & Saved!</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                All site modifications, SEO settings, and tracking scripts have been validated and saved successfully. The live website is updated.
+              </p>
+              <div className="text-xs text-emerald-600 font-medium mb-6 bg-emerald-500/10 py-2 rounded-xl border border-emerald-500/20">
+                Validated at {lastSavedTimestamp}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSaveSuccessModal(false)}
+                className="w-full rounded-full bg-gold py-3 text-xs font-semibold uppercase tracking-wider text-gold-foreground hover:opacity-90 transition"
+              >
+                Continue Editing
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Reset Confirmation Modal */}
         {showResetConfirm && (
