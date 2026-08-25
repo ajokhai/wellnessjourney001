@@ -254,20 +254,22 @@ function Home() {
                       <div className="mt-3 font-display text-4xl text-primary">Mounjaro<span className="text-gold">.</span></div>
                       <div className="font-display text-2xl">{p.dose}</div>
                       <p className="mt-3 text-sm text-muted-foreground">{p.desc}</p>
-                      <ul className="mt-5 space-y-2 text-sm">
-                        {p.bullets.map((b) => (
-                          <li key={b} className="flex gap-2">
-                            <span className="text-gold mt-0.5">✦</span>
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {p.bullets && p.bullets.length > 0 && (
+                        <ul className="mt-5 space-y-2 text-sm">
+                          {p.bullets.map((b, bIdx) => (
+                            <li key={bIdx} className="flex gap-2">
+                              <span className="text-gold mt-0.5">✦</span>
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       <div className="mt-6 pt-5 border-t border-border">
                         <div className="text-[10px] uppercase tracking-widest text-muted-foreground">From</div>
                         <div className="font-display text-3xl text-primary">{p.price}</div>
                       </div>
-                      <a href="#consult" className={`mt-5 inline-flex items-center justify-center rounded-full px-4 py-3 text-xs font-semibold uppercase tracking-[0.15em] transition ${p.featured ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground"}`}>
-                        Order via Consultation
+                      <a href={p.ctaUrl || "#consult"} className={`mt-5 inline-flex items-center justify-center rounded-full px-4 py-3 text-xs font-semibold uppercase tracking-[0.15em] transition ${p.featured ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground"}`}>
+                        {p.ctaText || "Order via Consultation"}
                       </a>
                     </article>
                   ))}
@@ -290,20 +292,22 @@ function Home() {
                       <div className="mt-3 font-display text-3xl text-primary leading-tight">Compounded Tirzepatide</div>
                       <div className="font-display text-2xl">{p.total}</div>
                       <p className="mt-3 text-sm text-muted-foreground">{p.desc}</p>
-                      <ul className="mt-5 space-y-2 text-sm">
-                        {p.bullets.map((b) => (
-                          <li key={b} className="flex gap-2">
-                            <span className="text-gold mt-0.5">✦</span>
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {p.bullets && p.bullets.length > 0 && (
+                        <ul className="mt-5 space-y-2 text-sm">
+                          {p.bullets.map((b, bIdx) => (
+                            <li key={bIdx} className="flex gap-2">
+                              <span className="text-gold mt-0.5">✦</span>
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       <div className="mt-6 pt-5 border-t border-border">
                         <div className="text-[10px] uppercase tracking-widest text-muted-foreground">From</div>
                         <div className="font-display text-3xl text-primary">{p.price}</div>
                       </div>
-                      <a href="#consult" className="mt-5 inline-flex items-center justify-center rounded-full border border-primary px-4 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition hover:bg-primary hover:text-primary-foreground">
-                        Order via Consultation
+                      <a href={p.ctaUrl || "#consult"} className="mt-5 inline-flex items-center justify-center rounded-full border border-primary px-4 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition hover:bg-primary hover:text-primary-foreground">
+                        {p.ctaText || "Order via Consultation"}
                       </a>
                     </article>
                   ))}

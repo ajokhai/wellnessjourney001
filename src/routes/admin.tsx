@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { useSiteConfig } from "@/components/SiteConfigContext";
-import type { SiteConfig, FaqItem, HiddenSections } from "@/lib/site-config";
+import type { SiteConfig, FaqItem, HiddenSections, ProductItem, CompoundedProductItem } from "@/lib/site-config";
 import logoImg from "@/assets/ope14.jpeg";
 
 export const Route = createFileRoute("/admin")({
@@ -721,16 +721,42 @@ function AdminPage() {
             {activeTab === "products" && (
               <div className="space-y-8">
                 {/* Mounjaro Products */}
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-6">
                   <SectionToggle
                     label="Mounjaro Doses Section"
                     hidden={formData.hiddenSections?.mounjaroTreatment}
                     onToggle={(h) => toggleSection("mounjaroTreatment", h)}
                   />
-                  <h2 className="font-display text-2xl text-primary font-semibold">Mounjaro Doses Section</h2>
+
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h2 className="font-display text-2xl text-primary font-semibold">Mounjaro Doses Cards ({formData.products.length})</h2>
+                      <p className="text-xs text-muted-foreground">Manage dose cards, prices, feature bullets, CTA buttons, & badges.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newProd: ProductItem = {
+                          id: `mounjaro-${Date.now()}`,
+                          dose: "2.5mg",
+                          tag: "New Dose",
+                          desc: "Description of dose effects.",
+                          price: "₦500,000",
+                          bullets: ["Appetite control", "Weight management"],
+                          ctaText: "Order via Consultation",
+                          ctaUrl: "#consult",
+                        };
+                        setFormData({ ...formData, products: [...formData.products, newProd] });
+                      }}
+                      className="rounded-full bg-gold/20 text-gold-foreground border border-gold/40 px-4 py-2 text-xs font-semibold hover:bg-gold/30 transition"
+                    >
+                      + Add Mounjaro Dose Card
+                    </button>
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Mounjaro Eyebrow</label>
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Mounjaro Section Eyebrow</label>
                       <input
                         type="text"
                         value={formData.treatment.mounjaroEyebrow}
@@ -739,7 +765,7 @@ function AdminPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Mounjaro Headline</label>
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Mounjaro Section Headline</label>
                       <input
                         type="text"
                         value={formData.treatment.mounjaroHeadline}
@@ -748,16 +774,176 @@ function AdminPage() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-6 pt-4">
+                    {formData.products.map((p, idx) => (
+                      <div key={p.id} className="rounded-2xl border border-border p-5 bg-background shadow-sm space-y-4">
+                        <div className="flex items-center justify-between border-b border-border pb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="font-display font-bold text-base text-primary">Mounjaro Card #{idx + 1}: {p.dose}</span>
+                            {p.featured && (
+                              <span className="rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold uppercase text-gold-foreground">
+                                Most Popular
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = formData.products.filter((_, i) => i !== idx);
+                              setFormData({ ...formData, products: updated });
+                            }}
+                            className="text-xs text-destructive hover:underline font-medium"
+                          >
+                            Delete Card
+                          </button>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Dose Strength *</label>
+                            <input
+                              type="text"
+                              value={p.dose}
+                              onChange={(e) => {
+                                const updated = [...formData.products];
+                                updated[idx].dose = e.target.value;
+                                setFormData({ ...formData, products: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-sm font-semibold text-primary"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Eyebrow Tag (e.g. Starter Dose)</label>
+                            <input
+                              type="text"
+                              value={p.tag}
+                              onChange={(e) => {
+                                const updated = [...formData.products];
+                                updated[idx].tag = e.target.value;
+                                setFormData({ ...formData, products: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-sm font-medium"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Price *</label>
+                            <input
+                              type="text"
+                              value={p.price}
+                              onChange={(e) => {
+                                const updated = [...formData.products];
+                                updated[idx].price = e.target.value;
+                                setFormData({ ...formData, products: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-sm font-bold text-primary"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Card Description</label>
+                          <textarea
+                            rows={2}
+                            value={p.desc}
+                            onChange={(e) => {
+                              const updated = [...formData.products];
+                              updated[idx].desc = e.target.value;
+                              setFormData({ ...formData, products: updated });
+                            }}
+                            className="w-full rounded-xl border px-3 py-2 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                            ✦ Feature Bullet Points (1 bullet per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={(p.bullets || []).join("\n")}
+                            onChange={(e) => {
+                              const updated = [...formData.products];
+                              updated[idx].bullets = e.target.value.split("\n").filter((line) => line.trim().length > 0);
+                              setFormData({ ...formData, products: updated });
+                            }}
+                            placeholder="Helps control appetite&#10;Reduces cravings&#10;Supports gradual weight loss"
+                            className="w-full rounded-xl border px-3 py-2 text-xs font-mono"
+                          />
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4 pt-2 border-t border-border">
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">CTA Button Text</label>
+                            <input
+                              type="text"
+                              value={p.ctaText || "Order via Consultation"}
+                              onChange={(e) => {
+                                const updated = [...formData.products];
+                                updated[idx].ctaText = e.target.value;
+                                setFormData({ ...formData, products: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-xs font-semibold"
+                            />
+                          </div>
+
+                          <div className="flex items-center pt-5">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={!!p.featured}
+                                onChange={(e) => {
+                                  const updated = [...formData.products];
+                                  updated[idx].featured = e.target.checked;
+                                  setFormData({ ...formData, products: updated });
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-gold focus:ring-gold"
+                              />
+                              <span className="text-xs font-semibold text-primary">Highlight as "Most Popular" Card</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Compounded Products */}
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-4">
+                <div className="rounded-3xl border border-border bg-card p-6 shadow-luxe space-y-6">
                   <SectionToggle
                     label="Compounded Tirzepatide Section"
                     hidden={formData.hiddenSections?.compoundedTreatment}
                     onToggle={(h) => toggleSection("compoundedTreatment", h)}
                   />
-                  <h2 className="font-display text-2xl text-primary font-semibold">Compounded Tirzepatide Section</h2>
+
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h2 className="font-display text-2xl text-primary font-semibold">Compounded Tirzepatide Cards ({formData.compoundedProducts.length})</h2>
+                      <p className="text-xs text-muted-foreground">Manage compounded vials, breakdown tags, prices, & bullet points.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newComp: CompoundedProductItem = {
+                          id: `compounded-${Date.now()}`,
+                          total: "10mg",
+                          breakdown: "4 doses of 2.5mg",
+                          price: "₦300,000",
+                          desc: "Compounded tirzepatide vial.",
+                          bullets: ["Weekly dosing over 4 weeks", "Pharmacy-compounded quality"],
+                          ctaText: "Order via Consultation",
+                          ctaUrl: "#consult",
+                        };
+                        setFormData({ ...formData, compoundedProducts: [...formData.compoundedProducts, newComp] });
+                      }}
+                      className="rounded-full bg-gold/20 text-gold-foreground border border-gold/40 px-4 py-2 text-xs font-semibold hover:bg-gold/30 transition"
+                    >
+                      + Add Compounded Card
+                    </button>
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Compounded Eyebrow</label>
@@ -777,6 +963,115 @@ function AdminPage() {
                         className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm focus:border-gold"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-6 pt-4">
+                    {formData.compoundedProducts.map((p, idx) => (
+                      <div key={p.id} className="rounded-2xl border border-border p-5 bg-background shadow-sm space-y-4">
+                        <div className="flex items-center justify-between border-b border-border pb-3">
+                          <span className="font-display font-bold text-base text-primary">Compounded Card #{idx + 1}: {p.total}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = formData.compoundedProducts.filter((_, i) => i !== idx);
+                              setFormData({ ...formData, compoundedProducts: updated });
+                            }}
+                            className="text-xs text-destructive hover:underline font-medium"
+                          >
+                            Delete Card
+                          </button>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Total Dose (e.g. 10mg) *</label>
+                            <input
+                              type="text"
+                              value={p.total}
+                              onChange={(e) => {
+                                const updated = [...formData.compoundedProducts];
+                                updated[idx].total = e.target.value;
+                                setFormData({ ...formData, compoundedProducts: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-sm font-semibold text-primary"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Breakdown Tag (e.g. 4 doses of 2.5mg)</label>
+                            <input
+                              type="text"
+                              value={p.breakdown}
+                              onChange={(e) => {
+                                const updated = [...formData.compoundedProducts];
+                                updated[idx].breakdown = e.target.value;
+                                setFormData({ ...formData, compoundedProducts: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-sm font-medium"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Price *</label>
+                            <input
+                              type="text"
+                              value={p.price}
+                              onChange={(e) => {
+                                const updated = [...formData.compoundedProducts];
+                                updated[idx].price = e.target.value;
+                                setFormData({ ...formData, compoundedProducts: updated });
+                              }}
+                              className="w-full rounded-xl border px-3 py-2 text-sm font-bold text-primary"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Card Description</label>
+                          <textarea
+                            rows={2}
+                            value={p.desc}
+                            onChange={(e) => {
+                              const updated = [...formData.compoundedProducts];
+                              updated[idx].desc = e.target.value;
+                              setFormData({ ...formData, compoundedProducts: updated });
+                            }}
+                            className="w-full rounded-xl border px-3 py-2 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                            ✦ Feature Bullet Points (1 bullet per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={(p.bullets || []).join("\n")}
+                            onChange={(e) => {
+                              const updated = [...formData.compoundedProducts];
+                              updated[idx].bullets = e.target.value.split("\n").filter((line) => line.trim().length > 0);
+                              setFormData({ ...formData, compoundedProducts: updated });
+                            }}
+                            placeholder="Weekly dosing over 4 weeks&#10;Ideal for starting titration&#10;Pharmacy-compounded quality"
+                            className="w-full rounded-xl border px-3 py-2 text-xs font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">CTA Button Text</label>
+                          <input
+                            type="text"
+                            value={p.ctaText || "Order via Consultation"}
+                            onChange={(e) => {
+                              const updated = [...formData.compoundedProducts];
+                              updated[idx].ctaText = e.target.value;
+                              setFormData({ ...formData, compoundedProducts: updated });
+                            }}
+                            className="w-full rounded-xl border px-3 py-2 text-xs font-semibold"
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

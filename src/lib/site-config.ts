@@ -6,6 +6,8 @@ export interface ProductItem {
   price: string;
   bullets: string[];
   featured?: boolean;
+  ctaText?: string;
+  ctaUrl?: string;
 }
 
 export interface CompoundedProductItem {
@@ -15,6 +17,8 @@ export interface CompoundedProductItem {
   breakdown: string;
   desc: string;
   bullets: string[];
+  ctaText?: string;
+  ctaUrl?: string;
 }
 
 export interface FaqItem {
@@ -353,6 +357,8 @@ export const defaultConfig: SiteConfig = {
       desc: "Perfect for beginners easing into treatment.",
       price: "₦500,000",
       bullets: ["Helps control appetite", "Reduces cravings", "Supports gradual weight loss"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "mounjaro-5mg",
@@ -362,6 +368,8 @@ export const defaultConfig: SiteConfig = {
       price: "₦650,000",
       bullets: ["Enhanced appetite suppression", "Improved blood sugar control", "Stronger weight-loss support"],
       featured: true,
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "mounjaro-7-5mg",
@@ -370,6 +378,8 @@ export const defaultConfig: SiteConfig = {
       desc: "Step up when your body is ready for more.",
       price: "₦750,000",
       bullets: ["Supports ongoing fat loss", "Helps maintain consistency", "Increased effectiveness"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "mounjaro-10mg",
@@ -378,6 +388,8 @@ export const defaultConfig: SiteConfig = {
       desc: "Maximum support for committed transformation.",
       price: "₦820,000",
       bullets: ["Strong appetite control", "Continued metabolic improvement", "Sustained weight management"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "mounjaro-12-5mg",
@@ -386,6 +398,8 @@ export const defaultConfig: SiteConfig = {
       desc: "For patients titrating toward their target dose.",
       price: "₦1,000,000",
       bullets: ["Deep appetite regulation", "Accelerated fat-loss support", "Ideal for long-term maintenance prep"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "mounjaro-15mg",
@@ -394,6 +408,8 @@ export const defaultConfig: SiteConfig = {
       desc: "The highest available dose for eligible patients.",
       price: "₦1,080,000",
       bullets: ["Maximum GLP-1 support", "Best for sustained results", "Requires clinical clearance"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
   ],
   compoundedProducts: [
@@ -404,6 +420,8 @@ export const defaultConfig: SiteConfig = {
       breakdown: "4 doses of 2.5mg",
       desc: "An affordable entry point for compounded tirzepatide treatment.",
       bullets: ["Weekly dosing over 4 weeks", "Ideal for starting titration", "Pharmacy-compounded quality"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "compounded-20mg",
@@ -412,6 +430,8 @@ export const defaultConfig: SiteConfig = {
       breakdown: "4 doses of 5mg",
       desc: "Step up your compounded programme with a stronger weekly dose.",
       bullets: ["Enhanced appetite control", "Steady weekly progression", "Cost-effective option"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "compounded-30mg",
@@ -420,6 +440,8 @@ export const defaultConfig: SiteConfig = {
       breakdown: "4 doses of 7.5mg",
       desc: "Mid-tier compounded support for ongoing weight-loss progress.",
       bullets: ["Stronger metabolic support", "4-week supply included", "Suitable for titration phase"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "compounded-40mg",
@@ -428,6 +450,8 @@ export const defaultConfig: SiteConfig = {
       breakdown: "4 doses of 10mg",
       desc: "Advanced compounded dosing for patients ready for more.",
       bullets: ["High-strength weekly doses", "Sustained appetite suppression", "Full 4-week course"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "compounded-50mg",
@@ -436,6 +460,8 @@ export const defaultConfig: SiteConfig = {
       breakdown: "4 doses of 12.5mg",
       desc: "Near-maximum compounded strength for eligible patients.",
       bullets: ["Peak-tier weekly dosing", "Supports long-term results", "Requires clinical clearance"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
     {
       id: "compounded-60mg",
@@ -444,6 +470,8 @@ export const defaultConfig: SiteConfig = {
       breakdown: "4 doses of 15mg",
       desc: "The highest compounded tirzepatide option we offer.",
       bullets: ["Maximum weekly dose strength", "Best for maintenance phase", "Dispensed after assessment"],
+      ctaText: "Order via Consultation",
+      ctaUrl: "#consult",
     },
   ],
   faq: [
