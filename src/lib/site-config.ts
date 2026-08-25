@@ -23,6 +23,25 @@ export interface FaqItem {
   a: string;
 }
 
+export interface StatItem {
+  id: string;
+  value: string;
+  label: string;
+}
+
+export interface TestimonialItem {
+  id: string;
+  name: string;
+  city: string;
+  quote: string;
+}
+
+export interface FeaturePair {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface SiteConfig {
   seo: {
     title: string;
@@ -48,19 +67,99 @@ export interface SiteConfig {
     mapsUrl: string;
     locationText: string;
   };
+  topBar: {
+    badgeText: string;
+    subText: string;
+    whatsappText: string;
+  };
   hero: {
     badge: string;
     headline: string;
     headlineItalic: string;
     subheadline: string;
+    pills: string[];
     primaryCtaText: string;
     primaryCtaUrl: string;
     secondaryCtaText: string;
     secondaryCtaUrl: string;
     ratingText: string;
     ratingScore: string;
+    overlayQuote: string;
+    overlaySubtext: string;
+    overlayAuthor: string;
     statBadgeTitle: string;
     statBadgeSubtitle: string;
+  };
+  painPoints: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    outcomeTag: string;
+    outcomeStat: string;
+    outcomeDesc: string;
+    items: string[];
+  };
+  treatment: {
+    mounjaroEyebrow: string;
+    mounjaroHeadline: string;
+    mounjaroDesc: string;
+    compoundedEyebrow: string;
+    compoundedHeadline: string;
+    compoundedDesc: string;
+    disclaimerText: string;
+  };
+  gallery: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    ctaText: string;
+    videoTitle: string;
+    videoDesc: string;
+    videoTag: string;
+  };
+  results: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    stats: StatItem[];
+    testimonials: TestimonialItem[];
+  };
+  whatsappReviews: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    ctaBannerHeadline: string;
+    ctaBannerButtonText: string;
+  };
+  whyUs: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    ctaText: string;
+    features: FeaturePair[];
+  };
+  bmiSection: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    disclaimerText: string;
+    ctaButtonText: string;
+  };
+  faqSection: {
+    eyebrow: string;
+    headline: string;
+  };
+  consultSection: {
+    eyebrow: string;
+    headline: string;
+    description: string;
+    whatsappButtonText: string;
+    callButtonText: string;
+  };
+  footer: {
+    aboutText: string;
+    copyrightText: string;
+    trademarkText: string;
   };
   products: ProductItem[];
   compoundedProducts: CompoundedProductItem[];
@@ -95,20 +194,126 @@ export const defaultConfig: SiteConfig = {
     mapsUrl: "https://maps.app.goo.gl/ufi3YCJ6nqcYQJfL9?g_st=iw",
     locationText: "Abuja, Nigeria",
   },
+  topBar: {
+    badgeText: "✦ Trusted Care",
+    subText: "Nationwide Delivery · Authentic Medication",
+    whatsappText: "WhatsApp Us",
+  },
   hero: {
     badge: "Wellness Journey",
     headline: "Nigeria's trusted medical weight-loss partner.",
     headlineItalic: "trusted",
     subheadline:
       "Lose weight. Repair your metabolic health. Reclaim your confidence. Official access to GLP-1 treatments including Mounjaro®, delivered with care across Nigeria.",
+    pills: ["Trusted Care", "Nationwide Delivery", "Authentic Medication", "Ongoing Support"],
     primaryCtaText: "Start Your Journey",
     primaryCtaUrl: "#consult",
     secondaryCtaText: "See real results",
     secondaryCtaUrl: "#results",
     ratingText: "Trusted by 2,400+ Nigerian patients",
     ratingScore: "4.9 / 5",
+    overlayQuote: '"I lost 18kg in 4 months."',
+    overlaySubtext: "Mounjaro changed everything — cravings, energy, confidence.",
+    overlayAuthor: "— Sarah A., Lagos",
     statBadgeTitle: "18kg",
     statBadgeSubtitle: "in 4 months",
+  },
+  painPoints: {
+    eyebrow: "Are you dealing with —",
+    headline: "A body that's been fighting you for too long?",
+    description: "Mounjaro gives you a real chance to repair your metabolic health and finally lose the weight — with attentive care.",
+    outcomeTag: "Clinical Outcome",
+    outcomeStat: "10–20%",
+    outcomeDesc: "average body-weight reduction with medical guidance.",
+    items: [
+      "Excessive weight gain",
+      "Type 2 diabetes",
+      "Insulin resistance",
+      "Chronic fatigue",
+      "Hormonal imbalance",
+      "Irregular periods",
+      "PCOS",
+      "Constant cravings",
+    ],
+  },
+  treatment: {
+    mounjaroEyebrow: "Which Mounjaro do you need?",
+    mounjaroHeadline: "A dose tailored to where you are in your journey.",
+    mounjaroDesc: "Every patient is assessed by our team before any prescription is issued. Your starting dose and titration plan are guided by your health profile.",
+    compoundedEyebrow: "Compounded Option",
+    compoundedHeadline: "Compounded Tirzepatide",
+    compoundedDesc: "Pharmacy-compounded tirzepatide supplied in 4-week courses. Each vial includes four weekly doses as listed below.",
+    disclaimerText: "Prescription medication. Sold only after medical assessment. Mounjaro® is a registered trademark of Eli Lilly and Company. Compounded tirzepatide is prepared by licensed pharmacies and is not Mounjaro®. Prices subject to change.",
+  },
+  gallery: {
+    eyebrow: "Authentic Stock · Photographed In-House",
+    headline: "Real Mounjaro®. Sealed. Verified.",
+    description: "Every pen we dispense is sourced through verified pharmaceutical channels and stored under proper cold-chain conditions before delivery.",
+    ctaText: "Check current stock",
+    videoTitle: "How your pens arrive",
+    videoDesc: "Sealed packaging, verified stock, and cold-chain handling from dispatch to your door.",
+    videoTag: "Unboxing",
+  },
+  results: {
+    eyebrow: "Real Results · Real Nigerians",
+    headline: "Transformations that feel as good as they look.",
+    description: "Photographs shared with patient consent. Outcomes vary and depend on adherence, nutrition, and consistent follow-up.",
+    stats: [
+      { id: "stat-1", value: "2,400+", label: "Patients served" },
+      { id: "stat-2", value: "14kg", label: "Avg. 4-month loss" },
+      { id: "stat-3", value: "94%", label: "Would recommend" },
+    ],
+    testimonials: [
+      { id: "testim-1", name: "Chidinma", city: "Abuja", quote: "I lost 14kg in 3 months. My energy improved and my clothes fit again." },
+      { id: "testim-2", name: "Tunde", city: "Lagos", quote: "I struggled with cravings for years. Within weeks my appetite was finally under control." },
+      { id: "testim-3", name: "Kemi", city: "Port Harcourt", quote: "My blood sugar improved and I lost 11kg. The best decision I've made for my health." },
+    ],
+  },
+  whatsappReviews: {
+    eyebrow: "Unfiltered · Straight from WhatsApp",
+    headline: "What our clients message us, in their own words.",
+    description: "Real conversations from real Nigerian clients — shared with consent, names redacted for privacy.",
+    ctaBannerHeadline: "Want to be our next success story?",
+    ctaBannerButtonText: "Message us on WhatsApp",
+  },
+  whyUs: {
+    eyebrow: "Why Nigerians choose us",
+    headline: "Premium care, not just a prescription.",
+    description: "We are not a pharmacy — we are a medically led weight-loss programme. From your first consultation to long-term maintenance, our team stays with you.",
+    ctaText: "Chat with our team on WhatsApp",
+    features: [
+      { id: "why-1", title: "Authentic Medication", description: "Sourced through verified pharmaceutical channels." },
+      { id: "why-2", title: "Doctor-Led Consultations", description: "Every patient is medically assessed before treatment." },
+      { id: "why-3", title: "Ongoing Follow-Up", description: "Dose titration, side-effect support, and progress tracking." },
+      { id: "why-4", title: "Nutrition Guidance", description: "Realistic, Nigerian-food-friendly meal frameworks." },
+      { id: "why-5", title: "Exercise Programmes", description: "Sustainable movement tailored to your body." },
+      { id: "why-6", title: "WhatsApp Support", description: "Direct line to your care team, 7 days a week." },
+      { id: "why-7", title: "Nationwide Delivery", description: "Discreet cold-chain delivery to every state." },
+      { id: "why-8", title: "Flexible Payments", description: "Bank transfer, card, and instalment options." },
+    ],
+  },
+  bmiSection: {
+    eyebrow: "BMI & Projection Tool",
+    headline: "See what your journey could look like.",
+    description: "Calculate your current BMI and see a typical 4-month projection based on the average 15% weight reduction seen in our programme.",
+    disclaimerText: "Estimates are illustrative and not a medical prediction.",
+    ctaButtonText: "Book Free Assessment",
+  },
+  faqSection: {
+    eyebrow: "Frequently asked",
+    headline: "Answers from our team.",
+  },
+  consultSection: {
+    eyebrow: "Ready to start?",
+    headline: "Book your consultation today.",
+    description: "Speak with our team confidentially. We'll assess your goals, your health, and the right starting dose — usually within 24 hours.",
+    whatsappButtonText: "WhatsApp Now",
+    callButtonText: "Call",
+  },
+  footer: {
+    aboutText: "Helping Nigerians achieve sustainable weight loss and better metabolic health through trusted GLP-1 treatment.",
+    copyrightText: "Wellness Journey Nigeria. All rights reserved.",
+    trademarkText: "Mounjaro® is a registered trademark of Eli Lilly. Prescription only.",
   },
   products: [
     {
@@ -257,7 +462,18 @@ export function getSiteConfig(): SiteConfig {
       seo: { ...defaultConfig.seo, ...parsed.seo },
       tracking: { ...defaultConfig.tracking, ...parsed.tracking },
       contact: { ...defaultConfig.contact, ...parsed.contact },
+      topBar: { ...defaultConfig.topBar, ...parsed.topBar },
       hero: { ...defaultConfig.hero, ...parsed.hero },
+      painPoints: { ...defaultConfig.painPoints, ...parsed.painPoints },
+      treatment: { ...defaultConfig.treatment, ...parsed.treatment },
+      gallery: { ...defaultConfig.gallery, ...parsed.gallery },
+      results: { ...defaultConfig.results, ...parsed.results },
+      whatsappReviews: { ...defaultConfig.whatsappReviews, ...parsed.whatsappReviews },
+      whyUs: { ...defaultConfig.whyUs, ...parsed.whyUs },
+      bmiSection: { ...defaultConfig.bmiSection, ...parsed.bmiSection },
+      faqSection: { ...defaultConfig.faqSection, ...parsed.faqSection },
+      consultSection: { ...defaultConfig.consultSection, ...parsed.consultSection },
+      footer: { ...defaultConfig.footer, ...parsed.footer },
       products: parsed.products || defaultConfig.products,
       compoundedProducts: parsed.compoundedProducts || defaultConfig.compoundedProducts,
       faq: parsed.faq || defaultConfig.faq,

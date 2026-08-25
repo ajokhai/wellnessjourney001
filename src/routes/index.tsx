@@ -23,6 +23,7 @@ import review6 from "@/assets/testim6.jpeg";
 import review7 from "@/assets/testim7.jpeg";
 import review8 from "@/assets/testim8.jpeg";
 import WhatsAppChat from "@/components/WhatsAppChat";
+import { useSiteConfig } from "@/components/SiteConfigContext";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -38,20 +39,14 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const PHONE = "07036809459";
-const PHONE_INTL = "+2347036809459";
-const WHATSAPP = "https://wa.me/2347036809459";
-const INSTAGRAM = "https://www.instagram.com/wellnessjourneyltd/";
-const MAPS = "https://maps.app.goo.gl/ufi3YCJ6nqcYQJfL9?g_st=iw";
-
-
 function Logo({ className = "" }: { className?: string }) {
+  const { config } = useSiteConfig();
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <img src={logoImg} alt="Wellness Journey logo" width={44} height={44} className="h-11 w-11 object-contain" />
       <div className="leading-none">
-        <div className="font-display text-[1.05rem] font-semibold tracking-wide">Wellness Journey</div>
-        <div className="text-[0.62rem] uppercase tracking-[0.22em] text-gold">Abuja · Nigeria</div>
+        <div className="font-display text-[1.05rem] font-semibold tracking-wide">{config.hero.badge || "Wellness Journey"}</div>
+        <div className="text-[0.62rem] uppercase tracking-[0.22em] text-gold">{config.contact.locationText || "Abuja · Nigeria"}</div>
       </div>
     </div>
   );
@@ -70,29 +65,26 @@ function GoldRule() {
   return <div className="gold-rule my-12 opacity-60" />;
 }
 
-const products = [
-  { dose: "2.5mg", tag: "Starter Dose", desc: "Perfect for beginners easing into treatment.", price: "₦500,000", bullets: ["Helps control appetite", "Reduces cravings", "Supports gradual weight loss"] },
-  { dose: "5mg", tag: "Most Popular", desc: "Our most requested dose for steady, visible results.", price: "₦650,000", bullets: ["Enhanced appetite suppression", "Improved blood sugar control", "Stronger weight-loss support"], featured: true },
-  { dose: "7.5mg", tag: "Continued Progress", desc: "Step up when your body is ready for more.", price: "₦750,000", bullets: ["Supports ongoing fat loss", "Helps maintain consistency", "Increased effectiveness"] },
-  { dose: "10mg", tag: "Advanced Support", desc: "Maximum support for committed transformation.", price: "₦820,000", bullets: ["Strong appetite control", "Continued metabolic improvement", "Sustained weight management"] },
-  { dose: "12.5mg", tag: "Peak Progress", desc: "For patients titrating toward their target dose.", price: "₦1,000,000", bullets: ["Deep appetite regulation", "Accelerated fat-loss support", "Ideal for long-term maintenance prep"] },
-  { dose: "15mg", tag: "Maximum Strength", desc: "The highest available dose for eligible patients.", price: "₦1,080,000", bullets: ["Maximum GLP-1 support", "Best for sustained results", "Requires clinical clearance"] },
-];
-
-const compoundedProducts = [
-  { total: "10mg", price: "₦300,000", breakdown: "4 doses of 2.5mg", desc: "An affordable entry point for compounded tirzepatide treatment.", bullets: ["Weekly dosing over 4 weeks", "Ideal for starting titration", "Pharmacy-compounded quality"] },
-  { total: "20mg", price: "₦350,000", breakdown: "4 doses of 5mg", desc: "Step up your compounded programme with a stronger weekly dose.", bullets: ["Enhanced appetite control", "Steady weekly progression", "Cost-effective option"] },
-  { total: "30mg", price: "₦360,000", breakdown: "4 doses of 7.5mg", desc: "Mid-tier compounded support for ongoing weight-loss progress.", bullets: ["Stronger metabolic support", "4-week supply included", "Suitable for titration phase"] },
-  { total: "40mg", price: "₦400,000", breakdown: "4 doses of 10mg", desc: "Advanced compounded dosing for patients ready for more.", bullets: ["High-strength weekly doses", "Sustained appetite suppression", "Full 4-week course"] },
-  { total: "50mg", price: "₦430,000", breakdown: "4 doses of 12.5mg", desc: "Near-maximum compounded strength for eligible patients.", bullets: ["Peak-tier weekly dosing", "Supports long-term results", "Requires clinical clearance"] },
-  { total: "60mg", price: "₦470,000", breakdown: "4 doses of 15mg", desc: "The highest compounded tirzepatide option we offer.", bullets: ["Maximum weekly dose strength", "Best for maintenance phase", "Dispensed after assessment"] },
-];
-
-import { useSiteConfig } from "@/components/SiteConfigContext";
-
 function Home() {
   const { config } = useSiteConfig();
-  const { contact, hero, products: productList, compoundedProducts: compoundedList, faq: faqList } = config;
+  const {
+    contact,
+    topBar,
+    hero,
+    painPoints,
+    treatment,
+    gallery,
+    results,
+    whatsappReviews,
+    whyUs,
+    bmiSection,
+    faqSection,
+    consultSection,
+    footer,
+    products: productList,
+    compoundedProducts: compoundedList,
+    faq: faqList,
+  } = config;
 
   const phone = contact.phone || "07036809459";
   const phoneIntl = contact.phoneIntl || "+2347036809459";
@@ -105,9 +97,9 @@ function Home() {
       {/* Top utility bar */}
       <div className="bg-emerald-deep text-cream/90">
         <div className="container-x flex items-center justify-between py-2 text-[11px] uppercase tracking-[0.18em]">
-          <span className="text-gold">✦ Trusted Care</span>
-          <span className="hidden sm:inline">Nationwide Delivery · Authentic Medication</span>
-          <a href={whatsapp} className="hover:text-gold transition">WhatsApp Us</a>
+          <span className="text-gold">{topBar.badgeText || "✦ Trusted Care"}</span>
+          <span className="hidden sm:inline">{topBar.subText || "Nationwide Delivery · Authentic Medication"}</span>
+          <a href={whatsapp} className="hover:text-gold transition">{topBar.whatsappText || "WhatsApp Us"}</a>
         </div>
       </div>
 
@@ -158,10 +150,9 @@ function Home() {
             </p>
 
             <div className="mt-9 flex flex-wrap gap-2.5">
-              <Pill>Trusted Care</Pill>
-              <Pill>Nationwide Delivery</Pill>
-              <Pill>Authentic Medication</Pill>
-              <Pill>Ongoing Support</Pill>
+              {(hero.pills || ["Trusted Care", "Nationwide Delivery", "Authentic Medication", "Ongoing Support"]).map((pill, i) => (
+                <Pill key={i}>{pill}</Pill>
+              ))}
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -193,9 +184,9 @@ function Home() {
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6">
                 <div className="rounded-2xl bg-cream/95 p-5 text-foreground shadow-luxe">
                   <div className="text-gold text-sm">★★★★★</div>
-                  <p className="mt-2 font-display text-xl leading-snug">"I lost 18kg in 4 months."</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Mounjaro changed everything — cravings, energy, confidence.</p>
-                  <p className="mt-3 text-xs uppercase tracking-[0.18em] text-primary">— Sarah A., Lagos</p>
+                  <p className="mt-2 font-display text-xl leading-snug">{hero.overlayQuote || '"I lost 18kg in 4 months."'}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{hero.overlaySubtext || "Mounjaro changed everything — cravings, energy, confidence."}</p>
+                  <p className="mt-3 text-xs uppercase tracking-[0.18em] text-primary">{hero.overlayAuthor || "— Sarah A., Lagos"}</p>
                 </div>
               </div>
             </div>
@@ -215,18 +206,18 @@ function Home() {
           <div className="relative">
             <img src={penImg} alt="Mounjaro auto-injector pen on velvet" width={1200} height={900} loading="lazy" className="rounded-3xl shadow-luxe" />
             <div className="absolute -bottom-8 -right-4 md:-right-8 max-w-xs rounded-2xl bg-primary p-6 text-primary-foreground shadow-luxe">
-              <div className="text-gold text-xs uppercase tracking-[0.2em] mb-2">Clinical Outcome</div>
-              <div className="font-display text-3xl">10–20%</div>
-              <p className="text-sm mt-1 opacity-85">average body-weight reduction with medical guidance.</p>
+              <div className="text-gold text-xs uppercase tracking-[0.2em] mb-2">{painPoints.outcomeTag || "Clinical Outcome"}</div>
+              <div className="font-display text-3xl">{painPoints.outcomeStat || "10–20%"}</div>
+              <p className="text-sm mt-1 opacity-85">{painPoints.outcomeDesc || "average body-weight reduction with medical guidance."}</p>
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Are you dealing with —</div>
-            <h2 className="font-display text-4xl md:text-5xl leading-tight text-primary">A body that's been fighting you for too long?</h2>
-            <p className="mt-5 text-muted-foreground max-w-lg">Mounjaro gives you a real chance to repair your metabolic health and finally lose the weight — with attentive care.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{painPoints.eyebrow || "Are you dealing with —"}</div>
+            <h2 className="font-display text-4xl md:text-5xl leading-tight text-primary">{painPoints.headline || "A body that's been fighting you for too long?"}</h2>
+            <p className="mt-5 text-muted-foreground max-w-lg">{painPoints.description || "Mounjaro gives you a real chance to repair your metabolic health and finally lose the weight — with attentive care."}</p>
             <ul className="mt-8 grid grid-cols-2 gap-3 text-sm">
-              {["Excessive weight gain","Type 2 diabetes","Insulin resistance","Chronic fatigue","Hormonal imbalance","Irregular periods","PCOS","Constant cravings"].map((x) => (
-                <li key={x} className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-3">
+              {(painPoints.items || ["Excessive weight gain","Type 2 diabetes","Insulin resistance","Chronic fatigue","Hormonal imbalance","Irregular periods","PCOS","Constant cravings"]).map((x, idx) => (
+                <li key={idx} className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-3">
                   <span className="h-1.5 w-1.5 rounded-full bg-gold" />
                   <span className="text-foreground">{x}</span>
                 </li>
@@ -240,9 +231,9 @@ function Home() {
       <section id="treatment" className="bg-secondary/60 py-20 lg:py-28 border-y border-border">
         <div className="container-x">
           <div className="max-w-2xl">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Which Mounjaro do you need?</div>
-            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">A dose tailored to where you are in your journey.</h2>
-            <p className="mt-4 text-muted-foreground">Every patient is assessed by our team before any prescription is issued. Your starting dose and titration plan are guided by your health profile.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{treatment.mounjaroEyebrow || "Which Mounjaro do you need?"}</div>
+            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">{treatment.mounjaroHeadline || "A dose tailored to where you are in your journey."}</h2>
+            <p className="mt-4 text-muted-foreground">{treatment.mounjaroDesc || "Every patient is assessed by our team before any prescription is issued. Your starting dose and titration plan are guided by your health profile."}</p>
           </div>
 
           <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -273,9 +264,9 @@ function Home() {
           </div>
 
           <div className="mt-20 max-w-2xl">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Compounded Option</div>
-            <h3 className="font-display text-3xl md:text-4xl text-primary leading-tight">Compounded Tirzepatide</h3>
-            <p className="mt-4 text-muted-foreground">Pharmacy-compounded tirzepatide supplied in 4-week courses. Each vial includes four weekly doses as listed below.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{treatment.compoundedEyebrow || "Compounded Option"}</div>
+            <h3 className="font-display text-3xl md:text-4xl text-primary leading-tight">{treatment.compoundedHeadline || "Compounded Tirzepatide"}</h3>
+            <p className="mt-4 text-muted-foreground">{treatment.compoundedDesc || "Pharmacy-compounded tirzepatide supplied in 4-week courses. Each vial includes four weekly doses as listed below."}</p>
           </div>
 
           <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -304,7 +295,7 @@ function Home() {
             ))}
           </div>
 
-          <p className="mt-8 text-xs text-muted-foreground max-w-2xl">Prescription medication. Sold only after medical assessment. Mounjaro® is a registered trademark of Eli Lilly and Company. Compounded tirzepatide is prepared by licensed pharmacies and is not Mounjaro®. Prices subject to change.</p>
+          <p className="mt-8 text-xs text-muted-foreground max-w-2xl">{treatment.disclaimerText || "Prescription medication. Sold only after medical assessment. Mounjaro® is a registered trademark of Eli Lilly and Company. Compounded tirzepatide is prepared by licensed pharmacies and is not Mounjaro®. Prices subject to change."}</p>
         </div>
       </section>
 
@@ -312,12 +303,12 @@ function Home() {
       <section id="gallery" className="container-x py-20 lg:py-28">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
           <div className="max-w-xl">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Authentic Stock · Photographed In-House</div>
-            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">Real Mounjaro®. Sealed. Verified.</h2>
-            <p className="mt-4 text-muted-foreground">Every pen we dispense is sourced through verified pharmaceutical channels and stored under proper cold-chain conditions before delivery.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{gallery.eyebrow || "Authentic Stock · Photographed In-House"}</div>
+            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">{gallery.headline || "Real Mounjaro®. Sealed. Verified."}</h2>
+            <p className="mt-4 text-muted-foreground">{gallery.description || "Every pen we dispense is sourced through verified pharmaceutical channels and stored under proper cold-chain conditions before delivery."}</p>
           </div>
           <a href={whatsapp} className="inline-flex items-center gap-2 rounded-full border border-primary px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary hover:text-primary-foreground transition">
-            Check current stock
+            {gallery.ctaText || "Check current stock"}
           </a>
         </div>
         <figure className="mb-8 overflow-hidden rounded-3xl border border-border bg-card shadow-luxe">
@@ -341,10 +332,10 @@ function Home() {
           />
           <figcaption className="flex items-center justify-between border-t border-border px-5 py-4">
             <div>
-              <div className="font-display text-lg text-primary">How your pens arrive</div>
-              <p className="mt-1 text-sm text-muted-foreground">Sealed packaging, verified stock, and cold-chain handling from dispatch to your door.</p>
+              <div className="font-display text-lg text-primary">{gallery.videoTitle || "How your pens arrive"}</div>
+              <p className="mt-1 text-sm text-muted-foreground">{gallery.videoDesc || "Sealed packaging, verified stock, and cold-chain handling from dispatch to your door."}</p>
             </div>
-            <span className="text-gold text-xs uppercase tracking-[0.2em]">Unboxing</span>
+            <span className="text-gold text-xs uppercase tracking-[0.2em]">{gallery.videoTag || "Unboxing"}</span>
           </figcaption>
         </figure>
 
@@ -371,18 +362,18 @@ function Home() {
       <section id="results" className="container-x py-20 lg:py-28">
         <div className="grid lg:grid-cols-[1fr_1fr] gap-14 items-center">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Real Results · Real Nigerians</div>
-            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">Transformations that feel as good as they look.</h2>
-            <p className="mt-5 text-muted-foreground max-w-md">Photographs shared with patient consent. Outcomes vary and depend on adherence, nutrition, and consistent follow-up.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{results.eyebrow || "Real Results · Real Nigerians"}</div>
+            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">{results.headline || "Transformations that feel as good as they look."}</h2>
+            <p className="mt-5 text-muted-foreground max-w-md">{results.description || "Photographs shared with patient consent. Outcomes vary and depend on adherence, nutrition, and consistent follow-up."}</p>
             <div className="mt-8 grid grid-cols-3 gap-6">
-              {[
-                { k: "2,400+", v: "Patients served" },
-                { k: "14kg", v: "Avg. 4-month loss" },
-                { k: "94%", v: "Would recommend" },
-              ].map((s) => (
-                <div key={s.k}>
-                  <div className="font-display text-3xl text-primary">{s.k}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">{s.v}</div>
+              {(results.stats || [
+                { id: "stat-1", value: "2,400+", label: "Patients served" },
+                { id: "stat-2", value: "14kg", label: "Avg. 4-month loss" },
+                { id: "stat-3", value: "94%", label: "Would recommend" },
+              ]).map((s) => (
+                <div key={s.id || s.label}>
+                  <div className="font-display text-3xl text-primary">{s.value}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -396,14 +387,14 @@ function Home() {
         </div>
 
         <div className="mt-16 grid md:grid-cols-3 gap-6">
-          {[
-            { img: t1, name: "Chidinma", city: "Abuja", quote: "I lost 14kg in 3 months. My energy improved and my clothes fit again." },
-            { img: t2, name: "Tunde", city: "Lagos", quote: "I struggled with cravings for years. Within weeks my appetite was finally under control." },
-            { img: t3, name: "Kemi", city: "Port Harcourt", quote: "My blood sugar improved and I lost 11kg. The best decision I've made for my health." },
-          ].map((r) => (
-            <figure key={r.name} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-luxe">
+          {(results.testimonials || [
+            { id: "testim-1", name: "Chidinma", city: "Abuja", quote: "I lost 14kg in 3 months. My energy improved and my clothes fit again." },
+            { id: "testim-2", name: "Tunde", city: "Lagos", quote: "I struggled with cravings for years. Within weeks my appetite was finally under control." },
+            { id: "testim-3", name: "Kemi", city: "Port Harcourt", quote: "My blood sugar improved and I lost 11kg. The best decision I've made for my health." },
+          ]).map((r, idx) => (
+            <figure key={r.id || r.name} className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-luxe">
               <div className="flex items-center gap-4">
-                <img src={r.img} alt={r.name} width={64} height={64} loading="lazy" className="h-14 w-14 rounded-full object-cover ring-2 ring-gold/40" />
+                <img src={[t1, t2, t3][idx % 3]} alt={r.name} width={64} height={64} loading="lazy" className="h-14 w-14 rounded-full object-cover ring-2 ring-gold/40" />
                 <div>
                   <div className="font-display text-lg text-primary">{r.name}</div>
                   <div className="text-xs uppercase tracking-wider text-muted-foreground">{r.city}</div>
@@ -420,9 +411,9 @@ function Home() {
       <section id="reviews" className="bg-secondary/60 border-y border-border py-20 lg:py-28">
         <div className="container-x">
           <div className="max-w-2xl mb-12">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Unfiltered · Straight from WhatsApp</div>
-            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">What our clients message us, in their own words.</h2>
-            <p className="mt-4 text-muted-foreground">Real conversations from real Nigerian clients — shared with consent, names redacted for privacy.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{whatsappReviews.eyebrow || "Unfiltered · Straight from WhatsApp"}</div>
+            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">{whatsappReviews.headline || "What our clients message us, in their own words."}</h2>
+            <p className="mt-4 text-muted-foreground">{whatsappReviews.description || "Real conversations from real Nigerian clients — shared with consent, names redacted for privacy."}</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[review1, review2, review3, review4, review5, review6, review7, review8].map((r, i) => (
@@ -434,9 +425,9 @@ function Home() {
             ))}
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-6">
-            <p className="font-display text-xl text-primary">Want to be our next success story?</p>
+            <p className="font-display text-xl text-primary">{whatsappReviews.ctaBannerHeadline || "Want to be our next success story?"}</p>
             <a href={whatsapp} className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
-              Message us on WhatsApp
+              {whatsappReviews.ctaBannerButtonText || "Message us on WhatsApp"}
             </a>
           </div>
         </div>
@@ -446,29 +437,29 @@ function Home() {
       <section id="why" className="bg-emerald-deep text-cream py-20 lg:py-28">
         <div className="container-x grid lg:grid-cols-[0.9fr_1.1fr] gap-14">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Why Nigerians choose us</div>
-            <h2 className="font-display text-4xl md:text-5xl leading-tight">Premium care, not just a prescription.</h2>
-            <p className="mt-5 text-cream/75 max-w-md">We are not a pharmacy — we are a medically led weight-loss programme. From your first consultation to long-term maintenance, our team stays with you.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{whyUs.eyebrow || "Why Nigerians choose us"}</div>
+            <h2 className="font-display text-4xl md:text-5xl leading-tight">{whyUs.headline || "Premium care, not just a prescription."}</h2>
+            <p className="mt-5 text-cream/75 max-w-md">{whyUs.description || "We are not a pharmacy — we are a medically led weight-loss programme. From your first consultation to long-term maintenance, our team stays with you."}</p>
             <a href={whatsapp} className="mt-8 inline-flex items-center gap-3 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
-              Chat with our team on WhatsApp
+              {whyUs.ctaText || "Chat with our team on WhatsApp"}
             </a>
           </div>
           <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-5 text-sm">
-            {[
-              ["Authentic Medication", "Sourced through verified pharmaceutical channels."],
-              ["Doctor-Led Consultations", "Every patient is medically assessed before treatment."],
-              ["Ongoing Follow-Up", "Dose titration, side-effect support, and progress tracking."],
-              ["Nutrition Guidance", "Realistic, Nigerian-food-friendly meal frameworks."],
-              ["Exercise Programmes", "Sustainable movement tailored to your body."],
-              ["WhatsApp Support", "Direct line to your care team, 7 days a week."],
-              ["Nationwide Delivery", "Discreet cold-chain delivery to every state."],
-              ["Flexible Payments", "Bank transfer, card, and instalment options."],
-            ].map(([title, body]) => (
-              <li key={title} className="flex gap-3 border-t border-cream/15 pt-5">
+            {(whyUs.features || [
+              { id: "why-1", title: "Authentic Medication", description: "Sourced through verified pharmaceutical channels." },
+              { id: "why-2", title: "Doctor-Led Consultations", description: "Every patient is medically assessed before treatment." },
+              { id: "why-3", title: "Ongoing Follow-Up", description: "Dose titration, side-effect support, and progress tracking." },
+              { id: "why-4", title: "Nutrition Guidance", description: "Realistic, Nigerian-food-friendly meal frameworks." },
+              { id: "why-5", title: "Exercise Programmes", description: "Sustainable movement tailored to your body." },
+              { id: "why-6", title: "WhatsApp Support", description: "Direct line to your care team, 7 days a week." },
+              { id: "why-7", title: "Nationwide Delivery", description: "Discreet cold-chain delivery to every state." },
+              { id: "why-8", title: "Flexible Payments", description: "Bank transfer, card, and instalment options." },
+            ]).map((f) => (
+              <li key={f.id || f.title} className="flex gap-3 border-t border-cream/15 pt-5">
                 <span className="text-gold mt-1">✦</span>
                 <div>
-                  <div className="font-display text-lg">{title}</div>
-                  <p className="text-cream/70 mt-0.5">{body}</p>
+                  <div className="font-display text-lg">{f.title}</div>
+                  <p className="text-cream/70 mt-0.5">{f.description}</p>
                 </div>
               </li>
             ))}
@@ -480,12 +471,12 @@ function Home() {
       <section id="bmi" className="container-x py-20 lg:py-28">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">BMI & Projection Tool</div>
-            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">See what your journey could look like.</h2>
-            <p className="mt-5 text-muted-foreground max-w-md">Calculate your current BMI and see a typical 4-month projection based on the average 15% weight reduction seen in our programme.</p>
-            <p className="mt-4 text-xs text-muted-foreground">Estimates are illustrative and not a medical prediction.</p>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{bmiSection.eyebrow || "BMI & Projection Tool"}</div>
+            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">{bmiSection.headline || "See what your journey could look like."}</h2>
+            <p className="mt-5 text-muted-foreground max-w-md">{bmiSection.description || "Calculate your current BMI and see a typical 4-month projection based on the average 15% weight reduction seen in our programme."}</p>
+            <p className="mt-4 text-xs text-muted-foreground">{bmiSection.disclaimerText || "Estimates are illustrative and not a medical prediction."}</p>
           </div>
-          <BMICalculator />
+          <BMICalculator ctaText={bmiSection.ctaButtonText} />
         </div>
       </section>
 
@@ -493,8 +484,8 @@ function Home() {
       <section id="faq" className="bg-secondary/60 border-y border-border py-20 lg:py-28">
         <div className="container-x grid lg:grid-cols-[0.7fr_1.3fr] gap-14">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Frequently asked</div>
-            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">Answers from our team.</h2>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{faqSection.eyebrow || "Frequently asked"}</div>
+            <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">{faqSection.headline || "Answers from our team."}</h2>
           </div>
           <div className="divide-y divide-border border-y border-border">
             {faqList.map((item, i) => (
@@ -516,15 +507,15 @@ function Home() {
           <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-gold/20 blur-3xl" />
           <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Ready to start?</div>
-              <h2 className="font-display text-4xl md:text-5xl leading-tight">Book your consultation today.</h2>
-              <p className="mt-4 text-cream/80 max-w-lg">Speak with our team confidentially. We'll assess your goals, your health, and the right starting dose — usually within 24 hours.</p>
+              <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">{consultSection.eyebrow || "Ready to start?"}</div>
+              <h2 className="font-display text-4xl md:text-5xl leading-tight">{consultSection.headline || "Book your consultation today."}</h2>
+              <p className="mt-4 text-cream/80 max-w-lg">{consultSection.description || "Speak with our team confidentially. We'll assess your goals, your health, and the right starting dose — usually within 24 hours."}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href={whatsapp} className="inline-flex items-center gap-3 rounded-full bg-gold px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
-                  WhatsApp Now
+                  {consultSection.whatsappButtonText || "WhatsApp Now"}
                 </a>
                 <a href={`tel:${phoneIntl}`} className="inline-flex items-center gap-3 rounded-full border border-cream/30 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-cream hover:border-gold hover:text-gold transition">
-                  Call {phone}
+                  {consultSection.callButtonText || "Call"} {phone}
                 </a>
               </div>
             </div>
@@ -549,7 +540,7 @@ function Home() {
         <div className="grid md:grid-cols-[1.4fr_1fr_1fr] gap-10">
           <div>
             <Logo className="text-primary" />
-            <p className="mt-4 text-sm text-muted-foreground max-w-sm">Helping Nigerians achieve sustainable weight loss and better metabolic health through trusted GLP-1 treatment.</p>
+            <p className="mt-4 text-sm text-muted-foreground max-w-sm">{footer.aboutText || "Helping Nigerians achieve sustainable weight loss and better metabolic health through trusted GLP-1 treatment."}</p>
           </div>
           <div>
             <div className="text-[10px] uppercase tracking-[0.25em] text-gold mb-3">Programme</div>
@@ -568,15 +559,14 @@ function Home() {
               <li><a href={instagram} target="_blank" rel="noreferrer" className="hover:text-gold transition">@wellnessjourneyltd</a></li>
               <li><a href={maps} target="_blank" rel="noreferrer" className="hover:text-gold transition">{contact.locationText || "Abuja, Nigeria"}</a></li>
             </ul>
-
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="Wellness Journey logo" width={36} height={36} className="h-9 w-9 object-contain" />
-            <span>© {new Date().getFullYear()} Wellness Journey Nigeria. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} {footer.copyrightText || "Wellness Journey Nigeria. All rights reserved."}</span>
           </div>
-          <span>Mounjaro® is a registered trademark of Eli Lilly. Prescription only.</span>
+          <span>{footer.trademarkText || "Mounjaro® is a registered trademark of Eli Lilly. Prescription only."}</span>
         </div>
       </footer>
 
@@ -586,7 +576,7 @@ function Home() {
   );
 }
 
-function BMICalculator() {
+function BMICalculator({ ctaText }: { ctaText?: string }) {
   const [height, setHeight] = useState(170);
   const [weight, setWeight] = useState(85);
   const bmi = weight / ((height / 100) ** 2);
@@ -626,7 +616,7 @@ function BMICalculator() {
       </div>
 
       <a href="#consult" className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-primary px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.15em] text-primary-foreground hover:opacity-90 transition">
-        Book Free Assessment
+        {ctaText || "Book Free Assessment"}
       </a>
     </div>
   );
