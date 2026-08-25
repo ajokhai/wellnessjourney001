@@ -1,0 +1,130 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.75rem;
+  /* Cream paper */
+  --background: oklch(0.985 0.012 95);
+  --foreground: oklch(0.22 0.04 150);
+  --card: oklch(0.995 0.008 95);
+  --card-foreground: oklch(0.22 0.04 150);
+  --popover: oklch(0.995 0.008 95);
+  --popover-foreground: oklch(0.22 0.04 150);
+  /* Deep forest emerald */
+  --primary: oklch(0.32 0.08 158);
+  --primary-foreground: oklch(0.97 0.02 95);
+  --secondary: oklch(0.94 0.025 100);
+  --secondary-foreground: oklch(0.32 0.08 158);
+  --muted: oklch(0.94 0.018 100);
+  --muted-foreground: oklch(0.45 0.03 140);
+  --accent: oklch(0.92 0.04 100);
+  --accent-foreground: oklch(0.32 0.08 158);
+  /* Luxe gold */
+  --gold: oklch(0.78 0.13 85);
+  --gold-foreground: oklch(0.22 0.04 150);
+  --cream: oklch(0.97 0.02 95);
+  --ink: oklch(0.18 0.03 150);
+  --destructive: oklch(0.55 0.22 28);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.02 100);
+  --input: oklch(0.9 0.02 100);
+  --ring: oklch(0.78 0.13 85);
+}
+
+.dark {
+  --background: oklch(0.18 0.03 150);
+  --foreground: oklch(0.97 0.02 95);
+  --card: oklch(0.22 0.04 150);
+  --card-foreground: oklch(0.97 0.02 95);
+  --popover: oklch(0.22 0.04 150);
+  --popover-foreground: oklch(0.97 0.02 95);
+  --primary: oklch(0.78 0.13 85);
+  --primary-foreground: oklch(0.18 0.03 150);
+  --secondary: oklch(0.28 0.05 150);
+  --secondary-foreground: oklch(0.97 0.02 95);
+  --muted: oklch(0.26 0.04 150);
+  --muted-foreground: oklch(0.75 0.03 95);
+  --accent: oklch(0.28 0.05 150);
+  --accent-foreground: oklch(0.78 0.13 85);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.78 0.13 85);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@utility container-x {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  max-width: 80rem;
+}
+
+@utility gold-rule {
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  height: 1px;
+}
+
+@utility text-gold {
+  color: var(--gold);
+}
+
+@utility bg-emerald-deep {
+  background: radial-gradient(120% 80% at 50% 0%, oklch(0.36 0.08 158) 0%, oklch(0.22 0.06 158) 60%, oklch(0.16 0.05 158) 100%);
+}
+
+@utility shadow-luxe {
+  box-shadow: 0 20px 60px -20px oklch(0.32 0.08 158 / 0.35), 0 2px 6px oklch(0.32 0.08 158 / 0.08);
+}
+
+@utility shadow-gold {
+  box-shadow: 0 10px 40px -10px oklch(0.78 0.13 85 / 0.45);
+}
