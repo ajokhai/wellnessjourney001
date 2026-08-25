@@ -37,6 +37,16 @@ export async function initDbTable() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    const check = await db.query("SELECT id FROM site_config_store WHERE id = 'main' LIMIT 1");
+    if (check.rows.length === 0) {
+      await db.query(
+        "INSERT INTO site_config_store (id, config, updated_at) VALUES ('main', $1, NOW())",
+        [defaultConfig]
+      );
+      console.log("[Vercel Postgres] Seeded initial defaultConfig row into database.");
+    }
+
     tableInitialized = true;
   } catch (err) {
     console.error("[Vercel Postgres] Table initialization error:", err);
@@ -70,8 +80,8 @@ export async function saveDbConfigServer(config: SiteConfig): Promise<boolean> {
       `INSERT INTO site_config_store (id, config, updated_at)
        VALUES ('main', $1, NOW())
        ON CONFLICT (id)
-       DO UPDATE SET config = $1, updated_at = NOW()`,
-      [JSON.stringify(config)]
+       DO UPDATE SET config = EXCLUDED.config, updated_at = NOW()`,
+      [config]
     );
     return true;
   } catch (err) {
