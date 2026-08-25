@@ -88,7 +88,18 @@ const compoundedProducts = [
   { total: "60mg", price: "₦470,000", breakdown: "4 doses of 15mg", desc: "The highest compounded tirzepatide option we offer.", bullets: ["Maximum weekly dose strength", "Best for maintenance phase", "Dispensed after assessment"] },
 ];
 
+import { useSiteConfig } from "@/components/SiteConfigContext";
+
 function Home() {
+  const { config } = useSiteConfig();
+  const { contact, hero, products: productList, compoundedProducts: compoundedList, faq: faqList } = config;
+
+  const phone = contact.phone || "07036809459";
+  const phoneIntl = contact.phoneIntl || "+2347036809459";
+  const whatsapp = contact.whatsappUrl || "https://wa.me/2347036809459";
+  const instagram = contact.instagramUrl || "https://www.instagram.com/wellnessjourneyltd/";
+  const maps = contact.mapsUrl || "https://maps.app.goo.gl/ufi3YCJ6nqcYQJfL9?g_st=iw";
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Top utility bar */}
@@ -96,7 +107,7 @@ function Home() {
         <div className="container-x flex items-center justify-between py-2 text-[11px] uppercase tracking-[0.18em]">
           <span className="text-gold">✦ Trusted Care</span>
           <span className="hidden sm:inline">Nationwide Delivery · Authentic Medication</span>
-          <a href={WHATSAPP} className="hover:text-gold transition">WhatsApp Us</a>
+          <a href={whatsapp} className="hover:text-gold transition">WhatsApp Us</a>
         </div>
       </div>
 
@@ -125,13 +136,25 @@ function Home() {
         <div className="container-x relative grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 py-20 lg:py-28 items-center">
           <div>
             <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.32em] text-gold mb-6">
-              <span className="h-px w-8 bg-gold/60" /> Wellness Journey
+              <span className="h-px w-8 bg-gold/60" /> {hero.badge || "Wellness Journey"}
             </div>
             <h1 className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.02] tracking-tight text-cream">
-              Nigeria's <span className="italic text-gold">trusted</span> medical weight-loss partner.
+              {hero.headline ? (
+                hero.headline.includes(hero.headlineItalic || "trusted") ? (
+                  <>
+                    {hero.headline.split(hero.headlineItalic || "trusted")[0]}
+                    <span className="italic text-gold">{hero.headlineItalic || "trusted"}</span>
+                    {hero.headline.split(hero.headlineItalic || "trusted")[1]}
+                  </>
+                ) : (
+                  hero.headline
+                )
+              ) : (
+                <>Nigeria's <span className="italic text-gold">trusted</span> medical weight-loss partner.</>
+              )}
             </h1>
             <p className="mt-7 max-w-xl text-lg text-cream/80 leading-relaxed">
-              Lose weight. Repair your metabolic health. Reclaim your confidence. Official access to GLP-1 treatments including Mounjaro®, delivered with care across Nigeria.
+              {hero.subheadline || "Lose weight. Repair your metabolic health. Reclaim your confidence. Official access to GLP-1 treatments including Mounjaro®, delivered with care across Nigeria."}
             </p>
 
             <div className="mt-9 flex flex-wrap gap-2.5">
@@ -142,12 +165,12 @@ function Home() {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
-              <a href="#consult" className="group inline-flex items-center gap-3 rounded-full bg-gold px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground shadow-gold hover:translate-y-[-1px] transition">
-                Start Your Journey
+              <a href={hero.primaryCtaUrl || "#consult"} className="group inline-flex items-center gap-3 rounded-full bg-gold px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground shadow-gold hover:translate-y-[-1px] transition">
+                {hero.primaryCtaText || "Start Your Journey"}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </a>
-              <a href="#results" className="inline-flex items-center gap-2 text-sm text-cream/80 hover:text-gold transition">
-                See real results <span aria-hidden>→</span>
+              <a href={hero.secondaryCtaUrl || "#results"} className="inline-flex items-center gap-2 text-sm text-cream/80 hover:text-gold transition">
+                {hero.secondaryCtaText || "See real results"} <span aria-hidden>→</span>
               </a>
             </div>
 
@@ -158,8 +181,8 @@ function Home() {
                 ))}
               </div>
               <div>
-                <div className="text-gold">★★★★★ <span className="text-cream/90">4.9 / 5</span></div>
-                <div className="text-xs">Trusted by 2,400+ Nigerian patients</div>
+                <div className="text-gold">★★★★★ <span className="text-cream/90">{hero.ratingScore || "4.9 / 5"}</span></div>
+                <div className="text-xs">{hero.ratingText || "Trusted by 2,400+ Nigerian patients"}</div>
               </div>
             </div>
           </div>
@@ -178,8 +201,8 @@ function Home() {
             </div>
             <div className="absolute -top-6 -right-6 hidden md:flex h-28 w-28 items-center justify-center rounded-full bg-gold text-gold-foreground shadow-gold rotate-6">
               <div className="text-center">
-                <div className="font-display text-2xl leading-none">18kg</div>
-                <div className="text-[10px] uppercase tracking-widest mt-1">in 4 months</div>
+                <div className="font-display text-2xl leading-none">{hero.statBadgeTitle || "18kg"}</div>
+                <div className="text-[10px] uppercase tracking-widest mt-1">{hero.statBadgeSubtitle || "in 4 months"}</div>
               </div>
             </div>
           </div>
@@ -223,8 +246,8 @@ function Home() {
           </div>
 
           <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {products.map((p) => (
-              <article key={p.dose} className={`group relative flex flex-col rounded-2xl border bg-card p-6 transition hover:-translate-y-1 ${p.featured ? "border-gold shadow-gold" : "border-border shadow-luxe"}`}>
+            {productList.map((p) => (
+              <article key={p.id || p.dose} className={`group relative flex flex-col rounded-2xl border bg-card p-6 transition hover:-translate-y-1 ${p.featured ? "border-gold shadow-gold" : "border-border shadow-luxe"}`}>
                 {p.featured && <div className="absolute -top-3 left-6 rounded-full bg-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-foreground">Most Popular</div>}
                 <div className="text-[10px] uppercase tracking-[0.25em] text-gold">{p.tag}</div>
                 <div className="mt-3 font-display text-4xl text-primary">Mounjaro<span className="text-gold">.</span></div>
@@ -256,8 +279,8 @@ function Home() {
           </div>
 
           <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {compoundedProducts.map((p) => (
-              <article key={p.total} className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 shadow-luxe transition hover:-translate-y-1">
+            {compoundedList.map((p) => (
+              <article key={p.id || p.total} className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 shadow-luxe transition hover:-translate-y-1">
                 <div className="text-[10px] uppercase tracking-[0.25em] text-gold">{p.breakdown}</div>
                 <div className="mt-3 font-display text-3xl text-primary leading-tight">Compounded Tirzepatide</div>
                 <div className="font-display text-2xl">{p.total}</div>
@@ -293,7 +316,7 @@ function Home() {
             <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">Real Mounjaro®. Sealed. Verified.</h2>
             <p className="mt-4 text-muted-foreground">Every pen we dispense is sourced through verified pharmaceutical channels and stored under proper cold-chain conditions before delivery.</p>
           </div>
-          <a href={WHATSAPP} className="inline-flex items-center gap-2 rounded-full border border-primary px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary hover:text-primary-foreground transition">
+          <a href={whatsapp} className="inline-flex items-center gap-2 rounded-full border border-primary px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary hover:text-primary-foreground transition">
             Check current stock
           </a>
         </div>
@@ -343,8 +366,6 @@ function Home() {
           ))}
         </div>
       </section>
-
-
 
       {/* RESULTS */}
       <section id="results" className="container-x py-20 lg:py-28">
@@ -405,7 +426,7 @@ function Home() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[review1, review2, review3, review4, review5, review6, review7, review8].map((r, i) => (
-              <a key={i} href={WHATSAPP} className="group block overflow-hidden rounded-2xl border border-border bg-card shadow-luxe hover:-translate-y-1 transition">
+              <a key={i} href={whatsapp} className="group block overflow-hidden rounded-2xl border border-border bg-card shadow-luxe hover:-translate-y-1 transition">
                 <div className="aspect-[3/4] overflow-hidden bg-emerald-deep/5">
                   <img src={r} alt={`Client testimonial ${i + 1}`} loading="lazy" className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-105" />
                 </div>
@@ -414,14 +435,12 @@ function Home() {
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-6">
             <p className="font-display text-xl text-primary">Want to be our next success story?</p>
-            <a href={WHATSAPP} className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
+            <a href={whatsapp} className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
               Message us on WhatsApp
             </a>
           </div>
         </div>
       </section>
-
-
 
       {/* WHY US */}
       <section id="why" className="bg-emerald-deep text-cream py-20 lg:py-28">
@@ -430,7 +449,7 @@ function Home() {
             <div className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Why Nigerians choose us</div>
             <h2 className="font-display text-4xl md:text-5xl leading-tight">Premium care, not just a prescription.</h2>
             <p className="mt-5 text-cream/75 max-w-md">We are not a pharmacy — we are a medically led weight-loss programme. From your first consultation to long-term maintenance, our team stays with you.</p>
-            <a href={WHATSAPP} className="mt-8 inline-flex items-center gap-3 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
+            <a href={whatsapp} className="mt-8 inline-flex items-center gap-3 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
               Chat with our team on WhatsApp
             </a>
           </div>
@@ -478,14 +497,8 @@ function Home() {
             <h2 className="font-display text-4xl md:text-5xl text-primary leading-tight">Answers from our team.</h2>
           </div>
           <div className="divide-y divide-border border-y border-border">
-            {[
-              { q: "Is Mounjaro approved for use in Nigeria?", a: "Mounjaro® (tirzepatide) is a prescription medication used worldwide under medical supervision. We dispense only through licensed medical assessment and verified supply channels." },
-              { q: "How much weight can I realistically lose?", a: "Clinical data shows most patients lose 10–20% of their body weight when treatment is combined with nutrition and lifestyle support. Your doctor will set realistic targets for you." },
-              { q: "Do I need a consultation before ordering?", a: "Yes. Every patient undergoes a confidential medical assessment so we can confirm Mounjaro is safe and appropriate for you, and plan your starting dose." },
-              { q: "How is the medication delivered?", a: "Cold-chain courier delivery nationwide, in discreet packaging. Lagos and Abuja typically receive same-day or next-day delivery." },
-              { q: "What payment methods do you accept?", a: "Bank transfer, debit/credit card, and selected instalment options. Payment details are shared after your consultation." },
-            ].map((item, i) => (
-              <details key={i} className="group py-5">
+            {faqList.map((item, i) => (
+              <details key={item.id || i} className="group py-5">
                 <summary className="flex cursor-pointer items-center justify-between gap-6 list-none">
                   <span className="font-display text-xl text-primary">{item.q}</span>
                   <span className="text-gold text-2xl transition group-open:rotate-45">+</span>
@@ -507,21 +520,21 @@ function Home() {
               <h2 className="font-display text-4xl md:text-5xl leading-tight">Book your consultation today.</h2>
               <p className="mt-4 text-cream/80 max-w-lg">Speak with our team confidentially. We'll assess your goals, your health, and the right starting dose — usually within 24 hours.</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href={WHATSAPP} className="inline-flex items-center gap-3 rounded-full bg-gold px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
+                <a href={whatsapp} className="inline-flex items-center gap-3 rounded-full bg-gold px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-gold-foreground hover:translate-y-[-1px] transition">
                   WhatsApp Now
                 </a>
-                <a href={`tel:${PHONE_INTL}`} className="inline-flex items-center gap-3 rounded-full border border-cream/30 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-cream hover:border-gold hover:text-gold transition">
-                  Call {PHONE}
+                <a href={`tel:${phoneIntl}`} className="inline-flex items-center gap-3 rounded-full border border-cream/30 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-cream hover:border-gold hover:text-gold transition">
+                  Call {phone}
                 </a>
               </div>
             </div>
             <div className="rounded-2xl border border-cream/15 bg-cream/[0.04] p-6 backdrop-blur">
               <div className="text-gold text-xs uppercase tracking-[0.2em]">Visit / Reach Us</div>
               <div className="mt-4 space-y-3 text-sm text-cream/85">
-                <div>📞 <a href={`tel:${PHONE_INTL}`} className="hover:text-gold transition">{PHONE}</a></div>
+                <div>📞 <a href={`tel:${phoneIntl}`} className="hover:text-gold transition">{phone}</a></div>
                 <div>💬 WhatsApp 7 days a week</div>
-                <div>📸 <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="hover:text-gold transition">@wellnessjourneyltd</a></div>
-                <div>📍 <a href={MAPS} target="_blank" rel="noreferrer" className="hover:text-gold transition">Abuja, Nigeria — view on Maps</a></div>
+                <div>📸 <a href={instagram} target="_blank" rel="noreferrer" className="hover:text-gold transition">@wellnessjourneyltd</a></div>
+                <div>📍 <a href={maps} target="_blank" rel="noreferrer" className="hover:text-gold transition">{contact.locationText || "Abuja, Nigeria"} — view on Maps</a></div>
               </div>
             </div>
 
@@ -550,10 +563,10 @@ function Home() {
           <div>
             <div className="text-[10px] uppercase tracking-[0.25em] text-gold mb-3">Contact</div>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href={`tel:${PHONE_INTL}`} className="hover:text-gold transition">{PHONE}</a></li>
-              <li><a href={WHATSAPP} className="hover:text-gold transition">WhatsApp Chat</a></li>
-              <li><a href={INSTAGRAM} target="_blank" rel="noreferrer" className="hover:text-gold transition">@wellnessjourneyltd</a></li>
-              <li><a href={MAPS} target="_blank" rel="noreferrer" className="hover:text-gold transition">Abuja, Nigeria</a></li>
+              <li><a href={`tel:${phoneIntl}`} className="hover:text-gold transition">{phone}</a></li>
+              <li><a href={whatsapp} className="hover:text-gold transition">WhatsApp Chat</a></li>
+              <li><a href={instagram} target="_blank" rel="noreferrer" className="hover:text-gold transition">@wellnessjourneyltd</a></li>
+              <li><a href={maps} target="_blank" rel="noreferrer" className="hover:text-gold transition">{contact.locationText || "Abuja, Nigeria"}</a></li>
             </ul>
 
           </div>

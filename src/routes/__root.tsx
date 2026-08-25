@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { SiteConfigProvider } from "../components/SiteConfigContext";
+import DynamicHeadAndScripts from "../components/DynamicHeadAndScripts";
 
 function NotFoundComponent() {
   return (
@@ -116,13 +118,18 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <SiteConfigProvider>
+        <DynamicHeadAndScripts />
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </SiteConfigProvider>
     </QueryClientProvider>
   );
 }
+
