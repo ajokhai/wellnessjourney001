@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { useSiteConfig } from "@/components/SiteConfigContext";
 import type { SiteConfig, FaqItem, HiddenSections, ProductItem, CompoundedProductItem } from "@/lib/site-config";
+import { verifyAdminServerFn } from "@/lib/api/config.functions";
 import logoImg from "@/assets/ope14.jpeg";
 
 export const Route = createFileRoute("/admin")({
@@ -224,14 +225,20 @@ function AdminPage() {
     return Object.values(formData.hiddenSections || {}).filter(Boolean).length;
   }, [formData.hiddenSections]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (usernameInput.trim() === "admin" && passwordInput === "$Admin4lyf") {
-      setIsAuthenticated(true);
-      setLoginError("");
-      sessionStorage.setItem(AUTH_KEY, "true");
-    } else {
-      setLoginError("Invalid username or password. Please try again.");
+    try {
+      const { valid } = await verifyAdminServerFn({ data: { username: usernameInput, password: passwordInput } });
+      if (valid) {
+        setIsAuthenticated(true);
+        setLoginError("");
+        sessionStorage.setItem(AUTH_KEY, "true");
+      } else {
+        setLoginError("Invalid username or password. Please try again.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setLoginError("Login failed. Please try again.");
     }
   };
 
